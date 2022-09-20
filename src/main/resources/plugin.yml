@@ -1,0 +1,22 @@
+name: LifePvELevel
+version: @version@
+main: net.azisaba.lifepvelevel.SpigotPlugin
+api-version: 1.15
+commands:
+  pvelevel:
+    permission: lifepvelevel.command.pvelevel
+  pvelevelitem:
+    permission: lifepvelevel.command.pvelevelitem
+permissions:
+  lifepvelevel.command.pvelevel:
+    description: Allows the player to use /pvelevel
+    default: true
+  lifepvelevel.command.pvelevel.admin:
+    description: Allows the player to use arguments for /pvelevel
+    default: false
+  lifepvelevel.command.pvelevelitem:
+    description: Allows the player to use /pvelevelitem
+    default: false
+  lifepvelevel.bypass_level:
+    description: Allows the player to bypass the level requirement
+    default: false
