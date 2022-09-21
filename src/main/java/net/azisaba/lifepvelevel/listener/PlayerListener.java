@@ -42,10 +42,11 @@ public class PlayerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent e) {
         PacketUtil.inject(e.getPlayer());
         // TODO: better (and safe) way to remove illegal armor
-        Bukkit.getScheduler().runTaskLater(SpigotPlugin.getInstance(), () -> checkIllegalArmor(e.getPlayer()), 20 * 10);
+        Bukkit.getScheduler().runTaskLater(SpigotPlugin.getInstance(), () -> checkIllegalArmor(e.getPlayer()), 20 * 5);
     }
 
     public static void checkIllegalArmor(@NotNull Player player) {
+        if (!player.isOnline()) return;
         ItemStack helmet = player.getInventory().getHelmet();
         ItemStack chestPlate = player.getInventory().getChestplate();
         ItemStack leggings = player.getInventory().getLeggings();
