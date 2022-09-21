@@ -182,6 +182,11 @@ public class PlayerListener implements Listener {
                 if (e.getCurrentItem().getType().name().endsWith("_HELMET")
                         || e.getCurrentItem().getType() == Material.CARVED_PUMPKIN
                         || e.getCurrentItem().getType() == Material.PLAYER_HEAD
+                        || e.getCurrentItem().getType() == Material.SKELETON_SKULL
+                        || e.getCurrentItem().getType() == Material.WITHER_SKELETON_SKULL
+                        || e.getCurrentItem().getType() == Material.CREEPER_HEAD
+                        || e.getCurrentItem().getType() == Material.DRAGON_HEAD
+                        || e.getCurrentItem().getType() == Material.ZOMBIE_HEAD
                         || e.getCurrentItem().getType().name().endsWith("_BANNER")) {
                     // player is attempting to shift-click an item into the helmet slot
                     itemToCheck = e.getCurrentItem();
