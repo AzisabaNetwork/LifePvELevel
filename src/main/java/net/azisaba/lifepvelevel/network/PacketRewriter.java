@@ -27,6 +27,7 @@ import net.minecraft.server.v1_15_R1.PacketPlayOutSetSlot;
 import net.minecraft.server.v1_15_R1.PacketPlayOutWindowItems;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.EquipmentSlot;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,25 +79,26 @@ public class PacketRewriter {
             }
         } else if (packet instanceof PacketPlayOutOpenWindowMerchant) {
             for (MerchantRecipe merchantRecipe : packetData.<MerchantRecipeList>getField("b")) {
-                processItemStack(packetData, merchantRecipe.buyingItem1);
-                processItemStack(packetData, merchantRecipe.buyingItem2);
+                merchantRecipe.buyingItem1 = processItemStack(packetData, merchantRecipe.buyingItem1.cloneItemStack());
+                merchantRecipe.buyingItem2 = processItemStack(packetData, merchantRecipe.buyingItem2.cloneItemStack());
                 processItemStack(packetData, merchantRecipe.sellingItem);
             }
         } else if (packet instanceof PacketPlayOutEntityEquipment) {
-            processItemStack(packetData, packetData.getField("c"));
+            packetData.<ItemStack, ItemStack>modifyField("c", i -> processItemStack(packetData, i.cloneItemStack()));
         } else if (packet instanceof PacketPlayOutSetSlot) {
-            processItemStack(packetData, packetData.getField("c"));
+            packetData.<ItemStack, ItemStack>modifyField("c", i -> processItemStack(packetData, i.cloneItemStack()));
         }
         return Collections.singletonList(packet);
     }
 
-    public static void processItemStack(@NotNull PacketData data, @Nullable ItemStack item) {
-        if (item == null) return;
-        if (!item.hasTag()) return;
+    @Contract("_, null -> null; _, !null -> !null")
+    public static ItemStack processItemStack(@NotNull PacketData data, @Nullable ItemStack item) {
+        if (item == null) return null;
+        if (!item.hasTag()) return item;
         NBTTagCompound tag = item.getOrCreateTag();
         if (tag.hasKeyOfType("LifePvELevel.modifiedTag", 99)) {
             // should not happen but just in case
-            return;
+            return item;
         }
         NBTTagCompound displayTag = tag.getCompound("display");
         int lines = 0;
@@ -129,6 +131,8 @@ public class PacketRewriter {
                     list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(new ChatComponentText(text).a(cm -> cm.setItalic(false)))));
                     list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(new ChatComponentText(" "))));
                     lines += 3;
+                    displayTag.set("Lore", list);
+                    tag.set("display", displayTag);
                 }
             }
         }
@@ -136,6 +140,7 @@ public class PacketRewriter {
             tag.setInt("LifePvELevel.modifiedTag", lines);
         }
         item.setTag(tag);
+        return item;
     }
 
     private static @NotNull String getRequiredLevelText(@NotNull PacketData data, long requiredLevel) {
@@ -175,6 +180,8 @@ public class PacketRewriter {
                 for (int i = 0; i < count; i++) {
                     list.remove(list.size() - 1);
                 }
+                displayTag.set("Lore", list);
+                tag.set("display", displayTag);
             }
         }
         tag.remove("LifePvELevel.modifiedTag");
