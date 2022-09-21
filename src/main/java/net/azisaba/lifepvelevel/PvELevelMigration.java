@@ -6,6 +6,7 @@ import com.gmail.nossr50.mcMMO;
 import me.staartvin.statz.Statz;
 import me.staartvin.statz.datamanager.player.PlayerStat;
 import net.azisaba.lifepvelevel.sql.DBConnector;
+import net.azisaba.lifepvelevel.util.LevelCalculator;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -25,7 +26,7 @@ public class PvELevelMigration {
                     PlayerProfile profile = mcMMO.getDatabaseManager().loadPlayerProfile(username);
                     int acrobaticsLevel = profile.getSkillLevel(PrimarySkillType.ACROBATICS);
                     long kills = (long) Math.floor(statz.getStatzAPI().getTotalOf(PlayerStat.KILLS_MOBS, profile.getUniqueId(), null));
-                    long exp = acrobaticsLevel + kills;
+                    long exp = LevelCalculator.toExp(Math.sqrt(kills / 5.0) + Math.sqrt(acrobaticsLevel));
                     DBConnector.setExp(profile.getUniqueId(), exp);
                     migrated++;
                 } catch (Exception e) {
