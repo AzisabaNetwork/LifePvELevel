@@ -2,7 +2,7 @@ package net.azisaba.lifepvelevel.util;
 
 public class LevelCalculator {
     private static final double BASE = 50;
-    private static final double GROWTH = 50;
+    private static final double GROWTH = 200;
     private static final double REVERSE_PQ_PREFIX = -(BASE - 0.5 * GROWTH) / GROWTH;
     private static final double REVERSE_CONST = REVERSE_PQ_PREFIX * REVERSE_PQ_PREFIX;
     private static final double GROWTH_DIVIDES_2 = 2 / GROWTH;
