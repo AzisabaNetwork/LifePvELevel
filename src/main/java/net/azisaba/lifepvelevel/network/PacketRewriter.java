@@ -140,7 +140,11 @@ public class PacketRewriter {
 
     private static @NotNull String getRequiredLevelText(@NotNull PacketData data, long requiredLevel) {
         long playerLevel = LevelCalculator.toLevel(DBConnector.getExp(data.getPlayer().getUniqueId()));
-        ChatColor color = (requiredLevel >= 0 && playerLevel >= requiredLevel) ? ChatColor.GREEN : ChatColor.RED;
+        ChatColor color = ChatColor.RED;
+        if (data.getPlayer().hasPermission("lifepvelevel.bypass_level")
+                || (requiredLevel >= 0 && playerLevel >= requiredLevel)) {
+            color = ChatColor.GREEN;
+        }
         return Messages.getFormattedText(data.getPlayer(), "item.lore.required_level", "" + color + requiredLevel);
     }
 
