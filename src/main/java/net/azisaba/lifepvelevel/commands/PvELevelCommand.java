@@ -1,6 +1,5 @@
 package net.azisaba.lifepvelevel.commands;
 
-import me.staartvin.statz.Statz;
 import net.azisaba.lifepvelevel.PvELevelMigration;
 import net.azisaba.lifepvelevel.SpigotPlugin;
 import net.azisaba.lifepvelevel.messages.Messages;
