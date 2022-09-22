@@ -1,8 +1,11 @@
 package net.azisaba.lifepvelevel.util;
 
+import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
 import net.azisaba.lifepvelevel.sql.DBConnector;
+import net.minecraft.server.v1_15_R1.NBTBase;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
+import net.minecraft.server.v1_15_R1.NBTTagString;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -13,10 +16,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.AbstractMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -115,11 +120,11 @@ public class Util {
 
     @NotNull
     public static List<String> suggest(@NotNull Stream<String> stack, @NotNull String arg) {
-        return stack.filter(s -> s.startsWith(arg)).collect(Collectors.toList());
+        return stack.filter(s -> s.toLowerCase().startsWith(arg.toLowerCase())).collect(Collectors.toList());
     }
 
     @Nullable
-    public static String getMMIDInMainHand(@NotNull Player player) {
+    private static String getMMIDInMainHand(@NotNull Player player) {
         ItemStack stack = player.getInventory().getItemInMainHand();
         if (stack.getType().isAir()) return null;
         net.minecraft.server.v1_15_R1.ItemStack nms = CraftItemStack.asNMSCopy(stack);
@@ -129,11 +134,39 @@ public class Util {
         return tag.getString("MYTHIC_TYPE");
     }
 
+    @Nullable
+    private static String getMMIDOrTagInMainHand(@NotNull Player player) {
+        ItemStack stack = player.getInventory().getItemInMainHand();
+        if (stack.getType().isAir()) return null;
+        net.minecraft.server.v1_15_R1.ItemStack nms = CraftItemStack.asNMSCopy(stack);
+        if (!nms.hasTag()) return null;
+        NBTTagCompound tag = nms.getOrCreateTag();
+        if (tag.hasKeyOfType("MYTHIC_TYPE", 8)) return tag.getString("MYTHIC_TYPE");
+        return toSortedString(tag);
+    }
+
+    @Nullable
+    public static String getMMIDOrKeyInMainHand(@NotNull Player player) {
+        ItemStack stack = player.getInventory().getItemInMainHand();
+        if (stack.getType().isAir()) return null;
+        String mmid = getMMIDInMainHand(player);
+        if (mmid != null) {
+            return mmid;
+        }
+        return ":" + stack.getType().name() + ":" + getMMIDOrTagInMainHand(player);
+    }
+
     public static long getRequiredLevel(@NotNull ItemStack stack) {
         net.minecraft.server.v1_15_R1.ItemStack nms = CraftItemStack.asNMSCopy(stack);
-        if (!nms.hasTag()) return 0;
+        if (!nms.hasTag()) {
+            String key = ":" + stack.getType().name() + ":null";
+            return DBConnector.getRequiredLevel(key);
+        }
         NBTTagCompound tag = nms.getOrCreateTag();
-        if (!tag.hasKeyOfType("MYTHIC_TYPE", 8)) return 0;
+        if (!tag.hasKeyOfType("MYTHIC_TYPE", 8)) {
+            String key = ":" + stack.getType().name() + ":" + toSortedString(tag);
+            return DBConnector.getRequiredLevel(key);
+        }
         String mmid = tag.getString("MYTHIC_TYPE");
         return DBConnector.getRequiredLevel(mmid);
     }
@@ -147,6 +180,28 @@ public class Util {
         if (requiredLevel < 0) return false;
         long playerLevel = LevelCalculator.toLevel(DBConnector.getExp(player.getUniqueId()));
         return playerLevel >= requiredLevel;
+    }
+
+    public static @NotNull String toSortedString(@NotNull NBTTagCompound tag) {
+        Map<String, NBTBase> map = getField(NBTTagCompound.class, "map", tag);
+        StringBuilder sb = new StringBuilder("{");
+        List<String> keys = Lists.newArrayList(map.keySet());
+        Collections.sort(keys);
+
+        for (String key : keys) {
+            if (sb.length() != 1) {
+                sb.append(',');
+            }
+            sb.append(quote(key)).append(':').append(map.get(key));
+        }
+
+        return sb.append('}').toString();
+    }
+
+    private static final Pattern TAG_PATTERN = Pattern.compile("[A-Za-z0-9._+-]+");
+
+    protected static String quote(@NotNull String s) {
+        return TAG_PATTERN.matcher(s).matches() ? s : NBTTagString.b(s);
     }
 
     @Contract("null -> true")

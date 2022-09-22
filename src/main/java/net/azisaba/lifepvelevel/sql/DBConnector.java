@@ -57,7 +57,7 @@ public class DBConnector {
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;", PreparedStatement::execute);
         runPrepareStatement("CREATE TABLE IF NOT EXISTS `items` (\n" +
                 "  `id` BIGINT NOT NULL AUTO_INCREMENT,\n" +
-                "  `mmid` TEXT NOT NULL UNIQUE,\n" +
+                "  `mmid` LONGTEXT NOT NULL UNIQUE,\n" +
                 "  `required_level` INT NOT NULL DEFAULT 0,\n" +
                 "  PRIMARY KEY (`id`)\n" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;", PreparedStatement::execute);

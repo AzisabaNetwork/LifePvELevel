@@ -15,7 +15,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDispenseArmorEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -145,6 +148,14 @@ public class PlayerListener implements Listener {
     }
     */
 
+    @EventHandler
+    public void onInventoryOpen(InventoryOpenEvent e) {
+        if (e.getInventory().getType() == InventoryType.MERCHANT) {
+            // remove lore when trading
+            ((Player) e.getPlayer()).updateInventory();
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerItemConsume(PlayerItemConsumeEvent e) {
         ItemStack stack = e.getItem();
@@ -164,8 +175,38 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onPlayerArmorChange(InventoryClickEvent e) {
+    public void onInventoryDrag(InventoryDragEvent e) {
+        boolean check = false;
+        for (int slot : e.getRawSlots()) {
+            if (slot == 5 || slot == 6 || slot == 7 || slot == 8 || slot == 45) { // armor slots and offhand
+                check = true;
+                break;
+            }
+        }
+        if (!check) {
+            return;
+        }
+        ItemStack stack = e.getOldCursor();
+        if (!Util.canUseItem((Player) e.getWhoClicked(), stack)) {
+            e.setCancelled(true);
+            Messages.sendActionBarFormatted(e.getWhoClicked(), "item.cannot_use_item", Util.getRequiredLevel(stack));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onInventoryClick(InventoryClickEvent e) {
+        ItemStack itemToCheckLevelRequirement = null;
         ItemStack itemToCheck = null;
+        if (e.getInventory().getType() == InventoryType.GRINDSTONE
+                && e.getClickedInventory() != null) {
+            if (!Util.isEmpty(e.getCursor()) && e.getClickedInventory().getType() == InventoryType.GRINDSTONE) {
+                itemToCheckLevelRequirement = e.getCursor();
+            } else if (!Util.isEmpty(e.getCurrentItem()) && e.getClickedInventory().getType() != InventoryType.GRINDSTONE) {
+                itemToCheckLevelRequirement = e.getCurrentItem();
+            } else if (e.getClick() == ClickType.NUMBER_KEY) {
+                itemToCheckLevelRequirement = e.getWhoClicked().getInventory().getItem(e.getHotbarButton());
+            }
+        }
         if (!Util.isEmpty(e.getCursor())
                 && e.getSlotType() == InventoryType.SlotType.ARMOR
                 && (e.getClick() == ClickType.LEFT || e.getClick() == ClickType.RIGHT)) {
@@ -218,10 +259,13 @@ public class PlayerListener implements Listener {
             // player is attempting to equip an item using number key
             itemToCheck = e.getWhoClicked().getInventory().getItem(e.getHotbarButton());
         }
-        if (itemToCheck == null) {
+        if (itemToCheckLevelRequirement != null
+                && !e.getWhoClicked().hasPermission("lifepvelevel.bypass_level")
+                && Util.getRequiredLevel(itemToCheckLevelRequirement) != 0) {
+            e.setCancelled(true);
             return;
         }
-        if (!Util.canUseItem((Player) e.getWhoClicked(), itemToCheck)) {
+        if (itemToCheck != null && !Util.canUseItem((Player) e.getWhoClicked(), itemToCheck)) {
             e.setCancelled(true);
             Messages.sendActionBarFormatted(e.getWhoClicked(), "item.cannot_use_item", Util.getRequiredLevel(itemToCheck));
         }
@@ -235,6 +279,24 @@ public class PlayerListener implements Listener {
         Player player = (Player) e.getTargetEntity();
         if (!Util.canUseItem(player, e.getItem())) {
             e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPrepareAnvil(PrepareAnvilEvent e) {
+        if (e.getView().getPlayer().hasPermission("lifepvelevel.bypass_level")) {
+            return;
+        }
+        for (ItemStack stack : e.getInventory()) {
+            if (stack == null) {
+                continue;
+            }
+            if (Util.getRequiredLevel(stack) != 0) {
+                e.getInventory().setRepairCost(1000000000);
+                e.setResult(null);
+                ((Player) e.getView().getPlayer()).updateInventory();
+                return;
+            }
         }
     }
 }

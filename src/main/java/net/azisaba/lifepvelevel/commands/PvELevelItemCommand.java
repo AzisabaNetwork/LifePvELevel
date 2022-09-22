@@ -21,10 +21,13 @@ public class PvELevelItemCommand implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
             if (sender instanceof Player) {
-                String mmid = Util.getMMIDInMainHand((Player) sender);
+                String mmid = Util.getMMIDOrKeyInMainHand((Player) sender);
                 if (mmid != null) {
                     long requiredLevel = DBConnector.getRequiredLevel(mmid);
                     long requiredExp = LevelCalculator.toExp(requiredLevel);
+                    if (mmid.matches(":.*:.*")) {
+                        mmid = mmid.replaceAll(":(.*?):.*", "$1");
+                    }
                     Messages.sendFormatted(sender, "command.pvelevelitem.overview", mmid, requiredLevel, requiredExp);
                     return true;
                 }
@@ -43,7 +46,7 @@ public class PvELevelItemCommand implements TabExecutor {
                     sender.sendMessage(ChatColor.RED + "You must specify mmid.");
                     return true;
                 }
-                mmid = Util.getMMIDInMainHand((Player) sender);
+                mmid = Util.getMMIDOrKeyInMainHand((Player) sender);
                 if (mmid == null) {
                     Messages.sendFormatted(sender, "command.generic.no_mythic_item");
                     return true;
@@ -53,6 +56,9 @@ public class PvELevelItemCommand implements TabExecutor {
             }
             long level = Long.parseLong(args[1]);
             DBConnector.setRequiredLevels(mmid, level);
+            if (mmid.matches(":.*:.*")) {
+                mmid = mmid.replaceAll(":(.*?):.*", "$1");
+            }
             Messages.sendFormatted(sender, "command.pvelevelitem.set", mmid, level, LevelCalculator.toExp(level));
         } else {
             // TODO: implement?
