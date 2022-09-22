@@ -235,6 +235,7 @@ public class PacketRewriter {
             return;
         }
         Runnable removeTags = () -> {
+            tag.remove("LifePvELevel.HadTag");
             tag.remove("LifePvELevel.HadDisplayTag");
             tag.remove("LifePvELevel.HadLoreTag");
             tag.remove("LifePvELevel.modifiedTag");
