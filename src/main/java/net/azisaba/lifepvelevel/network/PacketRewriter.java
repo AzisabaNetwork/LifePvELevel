@@ -58,7 +58,7 @@ public class PacketRewriter {
             }
         } else if (packet instanceof PacketPlayInUseItem) {
             PacketPlayInUseItem p = (PacketPlayInUseItem) packet;
-            if (checkItem(packetData, p.b())) {
+            if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
                 EntityPlayer player = ((CraftPlayer) packetData.getPlayer()).getHandle();
                 Bukkit.getScheduler().runTask(SpigotPlugin.getInstance(), () -> {
                     player.playerConnection.sendPacket(new PacketPlayOutBlockChange(player.world, p.c().getBlockPosition()));
