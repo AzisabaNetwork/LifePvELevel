@@ -16,6 +16,9 @@ public class LevelCalculator {
     }
 
     public static long toExp(double level) {
+        if (level <= 0) {
+            return 0;
+        }
         return toExp0(level + 1);
     }
 
