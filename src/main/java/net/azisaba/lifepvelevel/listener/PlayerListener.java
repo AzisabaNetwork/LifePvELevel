@@ -20,6 +20,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -95,58 +96,6 @@ public class PlayerListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent e) {
         PacketUtil.eject(e.getPlayer());
     }
-
-    /*
-    @EventHandler(priority = EventPriority.LOW)
-    public void onPlayerInteract(PlayerInteractEvent e) {
-        if (e.getHand() == null) {
-            return;
-        }
-        String hand = e.getHand() == EquipmentSlot.HAND ? "_main_hand" : "_off_hand";
-        ItemStack stack = e.getPlayer().getInventory().getItem(e.getHand());
-        if (!Util.canUseItem(e.getPlayer(), stack)) {
-            e.setCancelled(true);
-            Messages.sendActionBarFormatted(e.getPlayer(), "item.cannot_use_item" + hand, Util.getRequiredLevel(stack));
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onPlayerInteractEntity(PlayerInteractEntityEvent e) {
-        checkInteract(e);
-    }
-
-    private void checkInteract(PlayerInteractEntityEvent e) {
-        String hand = e.getHand() == EquipmentSlot.HAND ? "_main_hand" : "_off_hand";
-        ItemStack stack = e.getPlayer().getInventory().getItem(e.getHand());
-        if (!Util.canUseItem(e.getPlayer(), stack)) {
-            e.setCancelled(true);
-            Messages.sendActionBarFormatted(e.getPlayer(), "item.cannot_use_item" + hand, Util.getRequiredLevel(stack));
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent e) {
-        checkInteract(e);
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
-        if (!(e.getDamager() instanceof Player)) {
-            return;
-        }
-        Player damager = (Player) e.getDamager();
-        ItemStack mainHand = damager.getInventory().getItemInMainHand();
-        if (!Util.canUseItem(damager, mainHand)) {
-            e.setCancelled(true);
-            Messages.sendActionBarFormatted(damager, "item.cannot_use_item_main_hand", Util.getRequiredLevel(mainHand));
-        }
-        ItemStack offHand = damager.getInventory().getItemInOffHand();
-        if (!Util.canUseItem(damager, offHand)) {
-            e.setCancelled(true);
-            Messages.sendActionBarFormatted(damager, "item.cannot_use_item_off_hand", Util.getRequiredLevel(offHand));
-        }
-    }
-    */
 
     @EventHandler
     public void onInventoryOpen(InventoryOpenEvent e) {
@@ -296,6 +245,24 @@ public class PlayerListener implements Listener {
                 e.setResult(null);
                 ((Player) e.getView().getPlayer()).updateInventory();
                 return;
+            }
+        }
+    }
+
+    @EventHandler
+    public void onCommand(PlayerCommandPreprocessEvent e) {
+        if (e.getMessage().startsWith("/hat") ||
+                e.getMessage().startsWith("/ehat") ||
+                e.getMessage().startsWith("/head") ||
+                e.getMessage().startsWith("/ehead") ||
+                e.getMessage().startsWith("/essentials:hat") ||
+                e.getMessage().startsWith("/essentials:ehat") ||
+                e.getMessage().startsWith("/essentials:head") ||
+                e.getMessage().startsWith("/essentials:ehead")) {
+            ItemStack mainHand = e.getPlayer().getInventory().getItemInMainHand();
+            if (!Util.canUseItem(e.getPlayer(), mainHand)) {
+                e.setCancelled(true);
+                Messages.sendActionBarFormatted(e.getPlayer(), "item.cannot_use_item_main_hand", Util.getRequiredLevel(mainHand));
             }
         }
     }
