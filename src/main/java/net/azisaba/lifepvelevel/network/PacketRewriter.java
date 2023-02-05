@@ -51,8 +51,9 @@ public class PacketRewriter {
         } else if (packet instanceof PacketPlayInUseEntity) {
             PacketPlayInUseEntity p = (PacketPlayInUseEntity) packet;
             if (p.c() == null) {
-                if (checkItem(packetData, EnumHand.MAIN_HAND)) return Collections.emptyList();
-                if (checkItem(packetData, EnumHand.OFF_HAND)) return Collections.emptyList();
+                if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
+                    return Collections.emptyList();
+                }
             } else {
                 if (checkItem(packetData, p.c())) return Collections.emptyList();
             }
@@ -67,11 +68,13 @@ public class PacketRewriter {
                 return Collections.emptyList();
             }
         } else if (packet instanceof PacketPlayInBlockPlace) {
-            PacketPlayInBlockPlace p = (PacketPlayInBlockPlace) packet;
-            if (checkItem(packetData, p.b())) return Collections.emptyList();
+            if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
+                return Collections.emptyList();
+            }
         } else if (packet instanceof PacketPlayInArmAnimation) {
-            PacketPlayInArmAnimation p = (PacketPlayInArmAnimation) packet;
-            if (checkItem(packetData, p.b())) return Collections.emptyList();
+            if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
+                return Collections.emptyList();
+            }
         } else if (packet instanceof PacketPlayInWindowClick) {
             reverseProcessItemStack(packetData.getField("item"));
         } else if (packet instanceof PacketPlayInCloseWindow) {
@@ -83,6 +86,12 @@ public class PacketRewriter {
         return Collections.singletonList(packet);
     }
 
+    /**
+     * Checks the item in the given hand and sends a packet to update the inventory if the item cannot be used.
+     * @param packetData the packet data
+     * @param hand the hand to check
+     * @return true if the item cannot be used
+     */
     private static boolean checkItem(@NotNull PacketData packetData, EnumHand hand) {
         EquipmentSlot slot = hand == EnumHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND;
         org.bukkit.inventory.ItemStack stack = packetData.getPlayer().getInventory().getItem(slot);
