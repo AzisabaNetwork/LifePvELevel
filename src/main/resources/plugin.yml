@@ -7,6 +7,8 @@ commands:
     permission: lifepvelevel.command.pvelevel
   pvelevelitem:
     permission: lifepvelevel.command.pvelevelitem
+  resetpvelevel:
+    permission: lifepvelevel.command.resetpvelevel
 permissions:
   lifepvelevel.command.pvelevel:
     description: Allows the player to use /pvelevel
