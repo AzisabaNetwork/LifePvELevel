@@ -2,6 +2,7 @@ package net.azisaba.lifepvelevel;
 
 import net.azisaba.lifepvelevel.commands.PvELevelCommand;
 import net.azisaba.lifepvelevel.commands.PvELevelItemCommand;
+import net.azisaba.lifepvelevel.commands.ResetPvELevelCommand;
 import net.azisaba.lifepvelevel.listener.MythicMobDeathListener;
 import net.azisaba.lifepvelevel.listener.PlayerListener;
 import net.azisaba.lifepvelevel.messages.Messages;
@@ -50,6 +51,7 @@ public final class SpigotPlugin extends JavaPlugin {
         // register commands
         Objects.requireNonNull(Bukkit.getPluginCommand("pvelevel")).setExecutor(new PvELevelCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("pvelevelitem")).setExecutor(new PvELevelItemCommand());
+        Objects.requireNonNull(Bukkit.getPluginCommand("resetpvelevel")).setExecutor(new ResetPvELevelCommand());
 
         // update items data (blocking)
         DBConnector.updateSync();

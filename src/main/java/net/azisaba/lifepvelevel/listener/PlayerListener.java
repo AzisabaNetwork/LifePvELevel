@@ -7,7 +7,6 @@ import net.azisaba.lifepvelevel.util.PacketUtil;
 import net.azisaba.lifepvelevel.util.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -25,6 +24,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -143,6 +143,15 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
+    public void onSwapHandItems(PlayerSwapHandItemsEvent e) {
+        ItemStack stack = e.getOffHandItem();
+        if (!Util.canUseItem(e.getPlayer(), stack)) {
+            e.setCancelled(true);
+            Messages.sendActionBarFormatted(e.getPlayer(), "item.cannot_use_item_main_hand", Util.getRequiredLevel(stack));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
     public void onInventoryClick(InventoryClickEvent e) {
         ItemStack itemToCheckLevelRequirement = null;
         ItemStack itemToCheck = null;
@@ -155,6 +164,20 @@ public class PlayerListener implements Listener {
             } else if (e.getClick() == ClickType.NUMBER_KEY) {
                 itemToCheckLevelRequirement = e.getWhoClicked().getInventory().getItem(e.getHotbarButton());
             }
+        }
+        if (!Util.isEmpty(e.getCursor())
+                && e.getRawSlot() == 45
+                && (e.getClick() == ClickType.LEFT || e.getClick() == ClickType.RIGHT)) {
+            // player is attempting to equip an item on the offhand
+            itemToCheck = e.getCursor();
+        }
+        if (Util.isEmpty(e.getCursor())
+                && !Util.isEmpty(e.getCurrentItem())
+                && e.getClick() == ClickType.UNKNOWN) { // The "swap item with offhand" key (defaults to F).
+            itemToCheck = e.getCurrentItem();
+        }
+        if (e.getRawSlot() == 45 && e.getClick() == ClickType.NUMBER_KEY) {
+            itemToCheck = e.getWhoClicked().getInventory().getItem(e.getHotbarButton());
         }
         if (!Util.isEmpty(e.getCursor())
                 && e.getSlotType() == InventoryType.SlotType.ARMOR
@@ -170,36 +193,20 @@ public class PlayerListener implements Listener {
                 && !Util.isEmpty(e.getCurrentItem())
                 && (e.getClick() == ClickType.SHIFT_LEFT || e.getClick() == ClickType.SHIFT_RIGHT)) {
             if (Util.isEmpty(e.getWhoClicked().getInventory().getHelmet())) {
-                if (e.getCurrentItem().getType().name().endsWith("_HELMET")
-                        || e.getCurrentItem().getType() == Material.CARVED_PUMPKIN
-                        || e.getCurrentItem().getType() == Material.PLAYER_HEAD
-                        || e.getCurrentItem().getType() == Material.SKELETON_SKULL
-                        || e.getCurrentItem().getType() == Material.WITHER_SKELETON_SKULL
-                        || e.getCurrentItem().getType() == Material.CREEPER_HEAD
-                        || e.getCurrentItem().getType() == Material.DRAGON_HEAD
-                        || e.getCurrentItem().getType() == Material.ZOMBIE_HEAD
-                        || e.getCurrentItem().getType().name().endsWith("_BANNER")) {
-                    // player is attempting to shift-click an item into the helmet slot
-                    itemToCheck = e.getCurrentItem();
-                }
+                // player is attempting to shift-click an item into the helmet slot
+                itemToCheck = e.getCurrentItem();
             }
             if (Util.isEmpty(e.getWhoClicked().getInventory().getChestplate())) {
-                if (e.getCurrentItem().getType().name().endsWith("_CHESTPLATE")) {
-                    // player is attempting to shift-click an item into the chestplate slot
-                    itemToCheck = e.getCurrentItem();
-                }
+                // player is attempting to shift-click an item into the chestplate slot
+                itemToCheck = e.getCurrentItem();
             }
             if (Util.isEmpty(e.getWhoClicked().getInventory().getLeggings())) {
-                if (e.getCurrentItem().getType().name().endsWith("_LEGGINGS")) {
-                    // player is attempting to shift-click an item into the leggings slot
-                    itemToCheck = e.getCurrentItem();
-                }
+                // player is attempting to shift-click an item into the leggings slot
+                itemToCheck = e.getCurrentItem();
             }
             if (Util.isEmpty(e.getWhoClicked().getInventory().getBoots())) {
-                if (e.getCurrentItem().getType().name().endsWith("_BOOTS")) {
-                    // player is attempting to shift-click an item into the boots slot
-                    itemToCheck = e.getCurrentItem();
-                }
+                // player is attempting to shift-click an item into the boots slot
+                itemToCheck = e.getCurrentItem();
             }
         }
         if (Util.isEmpty(e.getCursor())
