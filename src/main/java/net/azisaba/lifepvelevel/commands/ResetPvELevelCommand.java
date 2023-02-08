@@ -33,7 +33,7 @@ public class ResetPvELevelCommand implements TabExecutor {
         PlayerProfile profile = mcMMO.getDatabaseManager().loadPlayerProfile(player.getName());
         int acrobaticsLevel = profile.getSkillLevel(PrimarySkillType.ACROBATICS);
         long kills = (long) Math.floor(statz.getStatzAPI().getTotalOf(PlayerStat.KILLS_MOBS, profile.getUniqueId(), null));
-        long exp = LevelCalculator.toExp(Math.sqrt(kills / 10.0) + (acrobaticsLevel / 100.0));
+        long exp = LevelCalculator.toExp(Math.sqrt(kills / 5.0) + (acrobaticsLevel / 75.0));
         DBConnector.setExp(profile.getUniqueId(), exp);
         return true;
     }
