@@ -4,6 +4,7 @@ import com.google.gson.JsonParseException;
 import net.azisaba.lifepvelevel.SpigotPlugin;
 import net.azisaba.lifepvelevel.messages.Messages;
 import net.azisaba.lifepvelevel.sql.DBConnector;
+import net.azisaba.lifepvelevel.util.BypassList;
 import net.azisaba.lifepvelevel.util.LevelCalculator;
 import net.azisaba.lifepvelevel.util.Util;
 import net.minecraft.server.v1_15_R1.ChatComponentText;
@@ -221,7 +222,7 @@ public class PacketRewriter {
         }
         long playerLevel = LevelCalculator.toLevel(DBConnector.getExp(data.getPlayer().getUniqueId()));
         ChatColor color = ChatColor.RED;
-        if (data.getPlayer().hasPermission("lifepvelevel.bypass_level")
+        if ((data.getPlayer().hasPermission("lifepvelevel.bypass_level") || BypassList.SET.contains(data.getPlayer().getUniqueId()))
                 || (requiredLevel >= 0 && playerLevel >= requiredLevel)) {
             color = ChatColor.GREEN;
         }

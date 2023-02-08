@@ -1,5 +1,6 @@
 package net.azisaba.lifepvelevel;
 
+import net.azisaba.lifepvelevel.commands.BypassPvELevelCommand;
 import net.azisaba.lifepvelevel.commands.PvELevelCommand;
 import net.azisaba.lifepvelevel.commands.PvELevelItemCommand;
 import net.azisaba.lifepvelevel.commands.ResetPvELevelCommand;
@@ -8,6 +9,7 @@ import net.azisaba.lifepvelevel.listener.PlayerListener;
 import net.azisaba.lifepvelevel.messages.Messages;
 import net.azisaba.lifepvelevel.sql.DBConnector;
 import net.azisaba.lifepvelevel.sql.DatabaseConfig;
+import net.azisaba.lifepvelevel.util.BypassList;
 import net.azisaba.lifepvelevel.util.PacketUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -52,6 +54,7 @@ public final class SpigotPlugin extends JavaPlugin {
         Objects.requireNonNull(Bukkit.getPluginCommand("pvelevel")).setExecutor(new PvELevelCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("pvelevelitem")).setExecutor(new PvELevelItemCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("resetpvelevel")).setExecutor(new ResetPvELevelCommand());
+        Objects.requireNonNull(Bukkit.getPluginCommand("bypasspvelevel")).setExecutor(new BypassPvELevelCommand());
 
         // update items data (blocking)
         DBConnector.updateSync();
@@ -61,6 +64,9 @@ public final class SpigotPlugin extends JavaPlugin {
 
         // inject packet handler
         Bukkit.getOnlinePlayers().forEach(p -> {
+            if (p.hasPermission("lifepvelevel.bypass")) {
+                BypassList.SET.add(p.getUniqueId());
+            }
             PacketUtil.inject(p);
             DBConnector.updatePlayerSync(p.getUniqueId(), p.getName());
         });

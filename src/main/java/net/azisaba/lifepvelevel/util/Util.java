@@ -174,7 +174,7 @@ public class Util {
     @Contract("_, null -> true")
     public static boolean canUseItem(@NotNull Player player, @Nullable ItemStack stack) {
         if (stack == null) return true;
-        if (player.hasPermission("lifepvelevel.bypass_level")) return true;
+        if (player.hasPermission("lifepvelevel.bypass_level") || BypassList.SET.contains(player.getUniqueId())) return true;
         long requiredLevel = getRequiredLevel(stack);
         if (requiredLevel == 0) return true;
         if (requiredLevel < 0) return false;
