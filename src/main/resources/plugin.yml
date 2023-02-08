@@ -2,6 +2,11 @@ name: LifePvELevel
 version: @version@
 main: net.azisaba.lifepvelevel.SpigotPlugin
 api-version: 1.15
+depend:
+  - TAB
+softdepend:
+  - Statz
+  - mcMMO
 commands:
   pvelevel:
     permission: lifepvelevel.command.pvelevel

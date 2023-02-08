@@ -15,12 +15,14 @@ repositories {
     maven { url = uri("https://jitpack.io/") } // Statz
     maven { url = uri("https://mvn.lumine.io/repository/maven-public/") } // for MythicMobs
     maven { url = uri("https://nexus.neetgames.com/repository/maven-public/") } // for mcMMO
+    maven { url = uri("https://repo.kryptonmc.org/releases/") } // for TAB
 }
 
 dependencies {
     implementation("com.zaxxer:HikariCP:4.0.3")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.6")
     compileOnly("org.spigotmc:spigot:1.15.2-R0.1-SNAPSHOT")
+    compileOnly("me.neznamy:tab-api:3.0.2")
     compileOnly("org.jetbrains:annotations:23.0.0")
     compileOnly("io.lumine:Mythic-Dist:4.13.0")
 

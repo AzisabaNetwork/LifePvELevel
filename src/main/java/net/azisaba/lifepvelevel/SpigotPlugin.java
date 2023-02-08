@@ -1,5 +1,7 @@
 package net.azisaba.lifepvelevel;
 
+import me.neznamy.tab.api.TabAPI;
+import me.neznamy.tab.api.event.plugin.TabLoadEvent;
 import net.azisaba.lifepvelevel.commands.BypassPvELevelCommand;
 import net.azisaba.lifepvelevel.commands.PvELevelCommand;
 import net.azisaba.lifepvelevel.commands.PvELevelItemCommand;
@@ -10,6 +12,7 @@ import net.azisaba.lifepvelevel.messages.Messages;
 import net.azisaba.lifepvelevel.sql.DBConnector;
 import net.azisaba.lifepvelevel.sql.DatabaseConfig;
 import net.azisaba.lifepvelevel.util.BypassList;
+import net.azisaba.lifepvelevel.util.LevelCalculator;
 import net.azisaba.lifepvelevel.util.PacketUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -18,9 +21,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.Objects;
 
 public final class SpigotPlugin extends JavaPlugin {
+    private static final DecimalFormat FORMATTER_COMMAS = new DecimalFormat("#,###");
     private static SpigotPlugin instance;
     private DatabaseConfig databaseConfig;
 
@@ -70,6 +75,30 @@ public final class SpigotPlugin extends JavaPlugin {
             PacketUtil.inject(p);
             DBConnector.updatePlayerSync(p.getUniqueId(), p.getName());
         });
+
+        registerPlaceholders();
+        TabAPI.getInstance().getEventBus().register(TabLoadEvent.class, e -> registerPlaceholders());
+    }
+
+    private static void registerPlaceholders() {
+        TabAPI.getInstance().getPlaceholderManager().registerPlayerPlaceholder(
+                "%pvelevel_level%",
+                50 * 20, // milliseconds
+                p -> FORMATTER_COMMAS.format(LevelCalculator.toLevel(DBConnector.getExp(p.getUniqueId())))
+        );
+        TabAPI.getInstance().getPlaceholderManager().registerPlayerPlaceholder(
+                "%pvelevel_exp%",
+                50 * 20, // milliseconds
+                p -> FORMATTER_COMMAS.format(LevelCalculator.toLevel(DBConnector.getExp(p.getUniqueId())))
+        );
+        TabAPI.getInstance().getPlaceholderManager().registerPlayerPlaceholder(
+                "%pvelevel_exp_for_next_level%",
+                50 * 20, // milliseconds
+                p -> {
+                    long exp = DBConnector.getExp(p.getUniqueId());
+                    return FORMATTER_COMMAS.format(LevelCalculator.toExp(LevelCalculator.toLevel(exp) + 1) - exp);
+                }
+        );
     }
 
     @Override
