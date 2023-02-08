@@ -24,6 +24,11 @@ public class ResetPvELevelCommand implements TabExecutor {
         if (!(sender instanceof Player)) {
             return true;
         }
+        if (args.length > 0 && (args[0].endsWith("L") || args[0].endsWith("l"))) {
+            int level = Integer.parseInt(args[0].substring(0, args[0].length() - 1));
+            DBConnector.setExp(((Player) sender).getUniqueId(), LevelCalculator.toExp(level));
+            return true;
+        }
         Statz statz = (Statz) Bukkit.getPluginManager().getPlugin("Statz");
         if (statz == null) {
             sender.sendMessage("Statz is not installed.");
