@@ -20,7 +20,7 @@ import java.util.List;
 
 public class ResetPvELevelCommand implements TabExecutor {
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
         if (!(sender instanceof Player)) {
             return true;
         }
@@ -29,11 +29,20 @@ public class ResetPvELevelCommand implements TabExecutor {
             sender.sendMessage("Statz is not installed.");
             return true;
         }
+        double killsDivisor = 5;
+        if (args.length > 0) {
+            try {
+                killsDivisor = Math.max(5, Integer.parseInt(args[0]));
+            } catch (NumberFormatException e) {
+                sender.sendMessage("Invalid number: " + args[0]);
+                return true;
+            }
+        }
         Player player = (Player) sender;
         PlayerProfile profile = mcMMO.getDatabaseManager().loadPlayerProfile(player.getName());
         int acrobaticsLevel = profile.getSkillLevel(PrimarySkillType.ACROBATICS);
         long kills = (long) Math.floor(statz.getStatzAPI().getTotalOf(PlayerStat.KILLS_MOBS, profile.getUniqueId(), null));
-        long exp = LevelCalculator.toExp(Math.sqrt(kills / 5.0) + (acrobaticsLevel / 75.0));
+        long exp = LevelCalculator.toExp(Math.sqrt(kills / killsDivisor) + (acrobaticsLevel / 75.0));
         DBConnector.setExp(profile.getUniqueId(), exp);
         return true;
     }
