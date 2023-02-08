@@ -60,7 +60,10 @@ public final class SpigotPlugin extends JavaPlugin {
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, DBConnector::updateAsync, 20 * 60, 20 * 60);
 
         // inject packet handler
-        Bukkit.getOnlinePlayers().forEach(PacketUtil::inject);
+        Bukkit.getOnlinePlayers().forEach(p -> {
+            PacketUtil.inject(p);
+            DBConnector.updatePlayerSync(p.getUniqueId(), p.getName());
+        });
     }
 
     @Override
