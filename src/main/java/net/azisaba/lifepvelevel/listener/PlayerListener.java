@@ -3,7 +3,6 @@ package net.azisaba.lifepvelevel.listener;
 import net.azisaba.lifepvelevel.SpigotPlugin;
 import net.azisaba.lifepvelevel.messages.Messages;
 import net.azisaba.lifepvelevel.sql.DBConnector;
-import net.azisaba.lifepvelevel.util.BypassList;
 import net.azisaba.lifepvelevel.util.PacketUtil;
 import net.azisaba.lifepvelevel.util.Util;
 import org.bukkit.Bukkit;
@@ -45,7 +44,6 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
-        BypassList.SET.add(e.getPlayer().getUniqueId());
         PacketUtil.inject(e.getPlayer());
         // TODO: better (and safe) way to remove illegal armor
         Bukkit.getScheduler().runTaskLater(SpigotPlugin.getInstance(), () -> checkIllegalArmor(e.getPlayer()), 20 * 5);
@@ -218,7 +216,7 @@ public class PlayerListener implements Listener {
             itemToCheck = e.getWhoClicked().getInventory().getItem(e.getHotbarButton());
         }
         if (itemToCheckLevelRequirement != null
-                && !(e.getWhoClicked().hasPermission("lifepvelevel.bypass_level") || BypassList.SET.contains(e.getWhoClicked().getUniqueId()))
+                && !e.getWhoClicked().hasPermission("lifepvelevel.bypass_level")
                 && Util.getRequiredLevel(itemToCheckLevelRequirement) != 0) {
             e.setCancelled(true);
             return;
@@ -242,7 +240,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPrepareAnvil(PrepareAnvilEvent e) {
-        if (e.getView().getPlayer().hasPermission("lifepvelevel.bypass_level") || BypassList.SET.contains(e.getView().getPlayer().getUniqueId())) {
+        if (e.getView().getPlayer().hasPermission("lifepvelevel.bypass_level")) {
             return;
         }
         for (ItemStack stack : e.getInventory()) {

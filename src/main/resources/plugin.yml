@@ -14,8 +14,6 @@ commands:
     permission: lifepvelevel.command.pvelevelitem
   resetpvelevel:
     permission: lifepvelevel.command.resetpvelevel
-  bypasspvelevel:
-    permission: lifepvelevel.command.bypasspvelevel
 permissions:
   lifepvelevel.command.pvelevel:
     description: Allows the player to use /pvelevel
