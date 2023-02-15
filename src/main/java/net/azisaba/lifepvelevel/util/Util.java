@@ -2,6 +2,7 @@ package net.azisaba.lifepvelevel.util;
 
 import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
+import net.azisaba.lifepvelevel.SpigotPlugin;
 import net.azisaba.lifepvelevel.sql.DBConnector;
 import net.minecraft.server.v1_15_R1.NBTBase;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
@@ -10,6 +11,7 @@ import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -174,10 +176,11 @@ public class Util {
     @Contract("_, null -> true")
     public static boolean canUseItem(@NotNull Player player, @Nullable ItemStack stack) {
         if (stack == null) return true;
-        if (player.hasPermission("lifepvelevel.bypass_level")) return true;
+        if (canBypass(player)) return true;
         long requiredLevel = getRequiredLevel(stack);
         if (requiredLevel == 0) return true;
         if (requiredLevel < 0) return false;
+        if (SpigotPlugin.getInstance().isAlwaysBypassIfNotNegative()) return true;
         long playerLevel = LevelCalculator.toLevel(DBConnector.getExp(player.getUniqueId()));
         return playerLevel >= requiredLevel;
     }
@@ -211,5 +214,9 @@ public class Util {
 
     public static double randomBetween(double min, double max) {
         return min + Math.random() * (max - min);
+    }
+
+    public static boolean canBypass(@NotNull Permissible permissible) {
+        return SpigotPlugin.getInstance().isAlwaysBypass() || permissible.hasPermission("lifepvelevel.bypass_level");
     }
 }

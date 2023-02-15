@@ -26,6 +26,8 @@ public final class SpigotPlugin extends JavaPlugin {
     private static final DecimalFormat FORMATTER_COMMAS = new DecimalFormat("#,###");
     private static SpigotPlugin instance;
     private DatabaseConfig databaseConfig;
+    private boolean alwaysBypass = false;
+    private boolean alwaysBypassIfNotNegative = false;
 
     @Override
     public void onEnable() {
@@ -41,6 +43,8 @@ public final class SpigotPlugin extends JavaPlugin {
         saveDefaultConfig();
         reloadConfig();
         databaseConfig = new DatabaseConfig(Objects.requireNonNull(getConfig().getConfigurationSection("database"), "database"));
+        alwaysBypass = getConfig().getBoolean("always-bypass", false);
+        alwaysBypassIfNotNegative = getConfig().getBoolean("always-bypass-if-not-negative", false);
 
         // load database
         try {
@@ -115,5 +119,13 @@ public final class SpigotPlugin extends JavaPlugin {
         Bukkit.getScheduler().runTaskLater(SpigotPlugin.getInstance(), () -> {
             if (player.isOnline()) player.updateInventory();
         }, 1);
+    }
+
+    public boolean isAlwaysBypass() {
+        return alwaysBypass;
+    }
+
+    public boolean isAlwaysBypassIfNotNegative() {
+        return alwaysBypassIfNotNegative;
     }
 }

@@ -221,8 +221,8 @@ public class PacketRewriter {
         }
         long playerLevel = LevelCalculator.toLevel(DBConnector.getExp(data.getPlayer().getUniqueId()));
         ChatColor color = ChatColor.RED;
-        if (data.getPlayer().hasPermission("lifepvelevel.bypass_level")
-                || (requiredLevel >= 0 && playerLevel >= requiredLevel)) {
+        if (Util.canBypass(data.getPlayer()) ||
+                (requiredLevel >= 0 && (SpigotPlugin.getInstance().isAlwaysBypassIfNotNegative() || playerLevel >= requiredLevel))) {
             color = ChatColor.GREEN;
         }
         return Messages.getFormattedText(data.getPlayer(), "item.lore.required_level", "" + color + requiredLevel);
