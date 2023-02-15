@@ -145,8 +145,7 @@ public class PacketRewriter {
             }
             list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(new ChatComponentText(" "))));
             list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(new ChatComponentText(text).a(cm -> cm.setItalic(false)))));
-            list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(new ChatComponentText(" "))));
-            lines.addAndGet(3);
+            lines.addAndGet(2);
             if (displayTag.get() != null) {
                 displayTag.get().set("Lore", list);
             }
@@ -166,8 +165,7 @@ public class PacketRewriter {
                             }
                             component.addSibling(new ChatComponentText(" "));
                             component.addSibling(new ChatComponentText(text).a(cm -> cm.setItalic(false)));
-                            component.addSibling(new ChatComponentText(" "));
-                            lines.addAndGet(3);
+                            lines.addAndGet(2);
                             displayTag.get().setString("Lore", IChatBaseComponent.ChatSerializer.a(component));
                             tag.set("display", displayTag.get());
                         }
