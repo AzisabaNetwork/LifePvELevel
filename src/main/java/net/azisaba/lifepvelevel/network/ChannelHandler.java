@@ -27,9 +27,9 @@ public class ChannelHandler extends ChannelDuplexHandler {
                 if (e instanceof VirtualMachineError) {
                     throw e;
                 }
-                SpigotPlugin.getInstance().getLogger().severe("Exception while processing packet from " + player.getName());
+                SpigotPlugin.getInstance().getLogger().severe("Exception while processing packet from " + player.getName() + ", proceeding with original packet");
                 e.printStackTrace(new LoggedPrintStream(SpigotPlugin.getInstance().getLogger(), System.err));
-                throw e;
+                super.channelRead(ctx, msg);
             }
             return;
         }
@@ -44,12 +44,12 @@ public class ChannelHandler extends ChannelDuplexHandler {
                     super.write(ctx, p, promise);
                 }
             } catch (Throwable e) {
-                if (e instanceof VirtualMachineError) {
+                if (e instanceof Error) {
                     throw e;
                 }
-                SpigotPlugin.getInstance().getLogger().severe("Exception while processing packet to " + player.getName());
+                SpigotPlugin.getInstance().getLogger().severe("Exception while processing packet to " + player.getName() + ", proceeding with original packet");
                 e.printStackTrace(new LoggedPrintStream(SpigotPlugin.getInstance().getLogger(), System.err));
-                throw e;
+                super.write(ctx, msg, promise);
             }
             return;
         }
