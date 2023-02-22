@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.azisaba"
-version = "0.0.1"
+version = "1.0.0-SNAPSHOT"
 
 repositories {
     mavenLocal()

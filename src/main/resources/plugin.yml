@@ -4,6 +4,7 @@ main: net.azisaba.lifepvelevel.SpigotPlugin
 api-version: 1.15
 depend:
   - TAB
+  - MythicMobs
 softdepend:
   - Statz
   - mcMMO

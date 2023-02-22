@@ -23,7 +23,6 @@ import net.minecraft.server.v1_15_R1.PacketPlayInUseEntity;
 import net.minecraft.server.v1_15_R1.PacketPlayInUseItem;
 import net.minecraft.server.v1_15_R1.PacketPlayInWindowClick;
 import net.minecraft.server.v1_15_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_15_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_15_R1.PacketPlayOutSetSlot;
 import net.minecraft.server.v1_15_R1.PacketPlayOutWindowItems;
 import org.bukkit.Bukkit;
@@ -32,7 +31,6 @@ import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.EquipmentSlot;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -41,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
+import java.util.function.Consumer;
 
 public class PacketRewriter {
     public static List<Object> processIncomingPacket(@NotNull PacketData packetData) {
@@ -111,46 +109,46 @@ public class PacketRewriter {
                     processItemStack(packetData, stack);
                 }
             }
-        } else if (packet instanceof PacketPlayOutEntityEquipment) {
-            packetData.<ItemStack, ItemStack>modifyField("c", i -> processItemStack(packetData, i.cloneItemStack()));
         } else if (packet instanceof PacketPlayOutSetSlot) {
             if (packetData.getPlayer().getOpenInventory().getType() != InventoryType.MERCHANT) {
-                packetData.<ItemStack, ItemStack>modifyField("c", i -> processItemStack(packetData, i.cloneItemStack()));
+                processItemStack(packetData, packetData.getField("c"));
             }
         }
         return Collections.singletonList(packet);
     }
 
-    @Contract("_, null -> null; _, !null -> !null")
-    public static ItemStack processItemStack(@NotNull PacketData data, @Nullable ItemStack item) {
-        if (item == null) return null;
+    public static void processItemStack(@NotNull PacketData data, @Nullable ItemStack item) {
+        if (item == null) return;
+        String text = getRequiredLevelText(data, item);
+        if (text == null) return;
         boolean hadTag = item.hasTag();
-        NBTTagCompound tag = item.getOrCreateTag();
+        NBTTagCompound tag;
+        if (hadTag) {
+            tag = item.getOrCreateTag();
+        } else {
+            tag = new NBTTagCompound();
+        }
         if (tag.hasKeyOfType("LifePvELevel.HadTag", 99)) {
-            return item;
+            return;
         }
         if (tag.hasKeyOfType("LifePvELevel.modifiedTag", 99)) {
             // should not happen but just in case
-            return item;
+            return;
         }
         AtomicReference<NBTTagCompound> displayTag = new AtomicReference<>(tag.getCompound("display"));
         AtomicInteger lines = new AtomicInteger();
         boolean hadDisplayTag = tag.hasKeyOfType("display", 10);
         boolean hadLoreTag = false;
         // false if successful; true if item does not have required level text
-        Predicate<NBTTagList> addLore = list -> {
-            String text = getRequiredLevelText(data, item);
-            if (text == null) {
-                return true;
-            }
+        final NBTTagCompound tag2 = tag;
+        Consumer<NBTTagList> addLore = list -> {
             list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(new ChatComponentText(" "))));
             list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(new ChatComponentText(text).a(cm -> cm.setItalic(false)))));
             lines.addAndGet(2);
             if (displayTag.get() != null) {
                 displayTag.get().set("Lore", list);
             }
-            tag.set("display", displayTag.get());
-            return false;
+            tag2.set("display", displayTag.get());
         };
         if (displayTag.get() != null) {
             if (displayTag.get().hasKeyOfType("Lore", 8) || displayTag.get().hasKeyOfType("Lore", 9)) {
@@ -159,10 +157,6 @@ public class PacketRewriter {
                     try {
                         IChatBaseComponent component = IChatBaseComponent.ChatSerializer.a(displayTag.get().getString("Lore"));
                         if (component != null) {
-                            String text = getRequiredLevelText(data, item);
-                            if (text == null) {
-                                return item;
-                            }
                             component.addSibling(new ChatComponentText(" "));
                             component.addSibling(new ChatComponentText(text).a(cm -> cm.setItalic(false)));
                             lines.addAndGet(2);
@@ -173,36 +167,34 @@ public class PacketRewriter {
                     }
                 } else {
                     NBTTagList list = displayTag.get().getList("Lore", 8);
-                    if (addLore.test(list)) {
-                        return item;
-                    }
+                    addLore.accept(list);
                 }
             } else {
                 NBTTagList list = new NBTTagList();
-                if (addLore.test(list)) {
-                    return item;
-                }
+                addLore.accept(list);
             }
         } else {
             displayTag.set(new NBTTagCompound());
             NBTTagList list = new NBTTagList();
-            if (addLore.test(list)) {
-                return item;
-            }
+            addLore.accept(list);
             tag.set("display", displayTag.get());
         }
         if (lines.get() >= 1) {
             tag.setInt("LifePvELevel.modifiedTag", lines.get());
+        } else {
+            return;
         }
         tag.setBoolean("LifePvELevel.HadDisplayTag", hadDisplayTag);
         tag.setBoolean("LifePvELevel.HadLoreTag", hadLoreTag);
         tag.setBoolean("LifePvELevel.HadTag", hadTag);
         item.setTag(tag);
-        return item;
     }
 
     private static @Nullable String getRequiredLevelText(@NotNull PacketData data, @NotNull ItemStack item) {
-        NBTTagCompound tag = item.getOrCreateTag();
+        NBTTagCompound tag = item.getTag();
+        if (tag == null) {
+            return null;
+        }
         String key = tag.hasKeyOfType("MYTHIC_TYPE", 8) ? tag.getString("MYTHIC_TYPE") : null;
         boolean keyed = false;
         if (key == null) {

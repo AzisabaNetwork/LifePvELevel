@@ -115,7 +115,7 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onPlayerItemConsume(PlayerShearEntityEvent e) {
+    public void onPlayerShearEntity(PlayerShearEntityEvent e) {
         ItemStack stack = e.getItem();
         if (!Util.canUseItem(e.getPlayer(), stack)) {
             e.setCancelled(true);
