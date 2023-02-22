@@ -1,7 +1,6 @@
 always-bypass: false
 always-bypass-if-not-negative: false
-enforced-mythic-type:
-- AZISAVIOR
+enforced-mythic-type: []
 
 database:
   # (scheme)://(host):(port)/(database)
