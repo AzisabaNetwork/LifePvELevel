@@ -211,8 +211,11 @@ public class PacketRewriter {
         }
         long playerLevel = LevelCalculator.toLevel(DBConnector.getExp(data.getPlayer().getUniqueId()));
         ChatColor color = ChatColor.RED;
-        if (Util.canBypass(data.getPlayer()) ||
-                (requiredLevel >= 0 && (SpigotPlugin.getInstance().isAlwaysBypassIfNotNegative() || playerLevel >= requiredLevel))) {
+        if (Util.canBypass(data.getPlayer(), item)) {
+            color = ChatColor.GREEN;
+        }
+        if (!SpigotPlugin.getInstance().getEnforcedMythicType().contains(Util.getMythicType(item)) &&
+                requiredLevel >= 0 && (SpigotPlugin.getInstance().isAlwaysBypassIfNotNegative() || playerLevel >= requiredLevel)) {
             color = ChatColor.GREEN;
         }
         return Messages.getFormattedText(data.getPlayer(), "item.lore.required_level", "" + color + requiredLevel);

@@ -216,7 +216,7 @@ public class PlayerListener implements Listener {
             itemToCheck = e.getWhoClicked().getInventory().getItem(e.getHotbarButton());
         }
         if (itemToCheckLevelRequirement != null
-                && !Util.canBypass(e.getWhoClicked())
+                && !Util.canBypass(e.getWhoClicked(), itemToCheckLevelRequirement)
                 && Util.getRequiredLevel(itemToCheckLevelRequirement) != 0) {
             e.setCancelled(true);
             return;
@@ -240,11 +240,11 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPrepareAnvil(PrepareAnvilEvent e) {
-        if (Util.canBypass(e.getView().getPlayer())) {
-            return;
-        }
         for (ItemStack stack : e.getInventory()) {
             if (stack == null) {
+                continue;
+            }
+            if (Util.canBypass(e.getView().getPlayer(), stack)) {
                 continue;
             }
             if (Util.getRequiredLevel(stack) != 0) {

@@ -127,9 +127,22 @@ public class Util {
 
     @Nullable
     private static String getMMIDInMainHand(@NotNull Player player) {
-        ItemStack stack = player.getInventory().getItemInMainHand();
-        if (stack.getType().isAir()) return null;
-        net.minecraft.server.v1_15_R1.ItemStack nms = CraftItemStack.asNMSCopy(stack);
+        return getMythicType(player.getInventory().getItemInMainHand());
+    }
+
+    @Contract("null -> null")
+    public static String getMythicType(@Nullable ItemStack item) {
+        if (item == null || item.getType().isAir()) return null;
+        net.minecraft.server.v1_15_R1.ItemStack nms = CraftItemStack.asNMSCopy(item);
+        if (!nms.hasTag()) return null;
+        NBTTagCompound tag = nms.getOrCreateTag();
+        if (!tag.hasKeyOfType("MYTHIC_TYPE", 8)) return null;
+        return tag.getString("MYTHIC_TYPE");
+    }
+
+    @Contract("null -> null")
+    public static String getMythicType(@Nullable net.minecraft.server.v1_15_R1.ItemStack nms) {
+        if (nms == null) return null;
         if (!nms.hasTag()) return null;
         NBTTagCompound tag = nms.getOrCreateTag();
         if (!tag.hasKeyOfType("MYTHIC_TYPE", 8)) return null;
@@ -176,11 +189,12 @@ public class Util {
     @Contract("_, null -> true")
     public static boolean canUseItem(@NotNull Player player, @Nullable ItemStack stack) {
         if (stack == null) return true;
-        if (canBypass(player)) return true;
+        if (canBypass(player, stack)) return true;
         long requiredLevel = getRequiredLevel(stack);
         if (requiredLevel == 0) return true;
         if (requiredLevel < 0) return false;
-        if (SpigotPlugin.getInstance().isAlwaysBypassIfNotNegative()) return true;
+        if (!SpigotPlugin.getInstance().getEnforcedMythicType().contains(getMythicType(stack)) &&
+                SpigotPlugin.getInstance().isAlwaysBypassIfNotNegative()) return true;
         long playerLevel = LevelCalculator.toLevel(DBConnector.getExp(player.getUniqueId()));
         return playerLevel >= requiredLevel;
     }
@@ -216,7 +230,23 @@ public class Util {
         return min + Math.random() * (max - min);
     }
 
-    public static boolean canBypass(@NotNull Permissible permissible) {
-        return SpigotPlugin.getInstance().isAlwaysBypass() || permissible.hasPermission("lifepvelevel.bypass_level");
+    public static boolean canBypass(@NotNull Permissible permissible, @Nullable ItemStack stack) {
+        if (permissible.hasPermission("lifepvelevel.bypass_level")) {
+            return true;
+        }
+        if (SpigotPlugin.getInstance().getEnforcedMythicType().contains(getMythicType(stack))) {
+            return false;
+        }
+        return SpigotPlugin.getInstance().isAlwaysBypass();
+    }
+
+    public static boolean canBypass(@NotNull Permissible permissible, @Nullable net.minecraft.server.v1_15_R1.ItemStack stack) {
+        if (permissible.hasPermission("lifepvelevel.bypass_level")) {
+            return true;
+        }
+        if (SpigotPlugin.getInstance().getEnforcedMythicType().contains(getMythicType(stack))) {
+            return false;
+        }
+        return SpigotPlugin.getInstance().isAlwaysBypass();
     }
 }

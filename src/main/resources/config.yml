@@ -1,10 +1,12 @@
 always-bypass: false
 always-bypass-if-not-negative: false
+enforced-mythic-type:
+- AZISAVIOR
 
 database:
   # (scheme)://(host):(port)/(database)
   # Keep the line commented out unless you get an obvious error message indicating that the driver was not found.
-  # Default driver (net.azisaba.lifepvelevel.libs.org.mariadb.jdbc.Driver) points to the bundled MariaDB driver in the TaxOffice jar.
+  # Default driver (net.azisaba.lifepvelevel.libs.org.mariadb.jdbc.Driver) points to the bundled MariaDB driver in the jar.
   #driver: net.azisaba.lifepvelevel.libs.org.mariadb.jdbc.Driver
 
   # change to jdbc:mysql if you want to use MySQL instead of MariaDB

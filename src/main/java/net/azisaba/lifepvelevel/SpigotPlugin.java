@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public final class SpigotPlugin extends JavaPlugin {
@@ -28,6 +30,7 @@ public final class SpigotPlugin extends JavaPlugin {
     private DatabaseConfig databaseConfig;
     private boolean alwaysBypass = false;
     private boolean alwaysBypassIfNotNegative = false;
+    private final List<String> enforcedMythicType = new ArrayList<>();
 
     @Override
     public void onEnable() {
@@ -45,6 +48,7 @@ public final class SpigotPlugin extends JavaPlugin {
         databaseConfig = new DatabaseConfig(Objects.requireNonNull(getConfig().getConfigurationSection("database"), "database"));
         alwaysBypass = getConfig().getBoolean("always-bypass", false);
         alwaysBypassIfNotNegative = getConfig().getBoolean("always-bypass-if-not-negative", false);
+        enforcedMythicType.addAll(getConfig().getStringList("enforced-mythic-type"));
 
         // load database
         try {
@@ -127,5 +131,9 @@ public final class SpigotPlugin extends JavaPlugin {
 
     public boolean isAlwaysBypassIfNotNegative() {
         return alwaysBypassIfNotNegative;
+    }
+
+    public @NotNull List<String> getEnforcedMythicType() {
+        return enforcedMythicType;
     }
 }
