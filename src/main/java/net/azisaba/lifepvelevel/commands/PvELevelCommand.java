@@ -28,11 +28,10 @@ public class PvELevelCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0 || !sender.hasPermission(PERMISSION_NODE)) {
-            if (!(sender instanceof Player)) {
+            if (!(sender instanceof Player player)) {
                 sender.sendMessage(ChatColor.RED + "/pvelevel <setLevel|setExp> ...");
                 return true;
             }
-            Player player = (Player) sender;
             long exp = DBConnector.getExp(player.getUniqueId());
             long level = LevelCalculator.toLevel(exp);
             long expForNextLevel = LevelCalculator.toExp(level + 1) - exp;
@@ -47,7 +46,7 @@ public class PvELevelCommand implements TabExecutor {
             long exp = LevelCalculator.toExp(Long.parseLong(args[2]));
             Bukkit.getScheduler().runTaskAsynchronously(SpigotPlugin.getInstance(), () -> {
                 Optional<UUID> uuid = DBConnector.getUniqueId(args[1]);
-                if (!uuid.isPresent()) {
+                if (uuid.isEmpty()) {
                     sender.sendMessage(ChatColor.RED + "Player not found: " + args[1]);
                     return;
                 }
@@ -62,7 +61,7 @@ public class PvELevelCommand implements TabExecutor {
             long exp = Long.parseLong(args[2]);
             Bukkit.getScheduler().runTaskAsynchronously(SpigotPlugin.getInstance(), () -> {
                 Optional<UUID> uuid = DBConnector.getUniqueId(args[1]);
-                if (!uuid.isPresent()) {
+                if (uuid.isEmpty()) {
                     sender.sendMessage(ChatColor.RED + "Player not found: " + args[1]);
                     return;
                 }
@@ -84,7 +83,7 @@ public class PvELevelCommand implements TabExecutor {
         } else {
             Bukkit.getScheduler().runTaskAsynchronously(SpigotPlugin.getInstance(), () -> {
                 Optional<UUID> uuid = DBConnector.getUniqueId(args[0]);
-                if (!uuid.isPresent()) {
+                if (uuid.isEmpty()) {
                     sender.sendMessage(ChatColor.RED + "Player not found: " + args[0]);
                     return;
                 }

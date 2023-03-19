@@ -6,29 +6,30 @@ import net.azisaba.lifepvelevel.messages.Messages;
 import net.azisaba.lifepvelevel.sql.DBConnector;
 import net.azisaba.lifepvelevel.util.LevelCalculator;
 import net.azisaba.lifepvelevel.util.Util;
-import net.minecraft.server.v1_15_R1.ChatComponentText;
-import net.minecraft.server.v1_15_R1.EntityPlayer;
-import net.minecraft.server.v1_15_R1.EnumHand;
-import net.minecraft.server.v1_15_R1.IChatBaseComponent;
-import net.minecraft.server.v1_15_R1.ItemStack;
-import net.minecraft.server.v1_15_R1.NBTTagCompound;
-import net.minecraft.server.v1_15_R1.NBTTagList;
-import net.minecraft.server.v1_15_R1.NBTTagString;
-import net.minecraft.server.v1_15_R1.Packet;
-import net.minecraft.server.v1_15_R1.PacketPlayInArmAnimation;
-import net.minecraft.server.v1_15_R1.PacketPlayInBlockPlace;
-import net.minecraft.server.v1_15_R1.PacketPlayInCloseWindow;
-import net.minecraft.server.v1_15_R1.PacketPlayInSetCreativeSlot;
-import net.minecraft.server.v1_15_R1.PacketPlayInUseEntity;
-import net.minecraft.server.v1_15_R1.PacketPlayInUseItem;
-import net.minecraft.server.v1_15_R1.PacketPlayInWindowClick;
-import net.minecraft.server.v1_15_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_15_R1.PacketPlayOutSetSlot;
-import net.minecraft.server.v1_15_R1.PacketPlayOutWindowItems;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.network.chat.ChatModifier;
+import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.chat.IChatMutableComponent;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.PacketPlayInArmAnimation;
+import net.minecraft.network.protocol.game.PacketPlayInBlockPlace;
+import net.minecraft.network.protocol.game.PacketPlayInCloseWindow;
+import net.minecraft.network.protocol.game.PacketPlayInSetCreativeSlot;
+import net.minecraft.network.protocol.game.PacketPlayInUseEntity;
+import net.minecraft.network.protocol.game.PacketPlayInUseItem;
+import net.minecraft.network.protocol.game.PacketPlayInWindowClick;
+import net.minecraft.network.protocol.game.PacketPlayOutBlockChange;
+import net.minecraft.network.protocol.game.PacketPlayOutSetSlot;
+import net.minecraft.network.protocol.game.PacketPlayOutWindowItems;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.EnumHand;
+import net.minecraft.world.item.ItemStack;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -47,34 +49,37 @@ public class PacketRewriter {
         if (packet instanceof PacketPlayInSetCreativeSlot) {
             reverseProcessItemStack(packetData.getField("b"));
         } else if (packet instanceof PacketPlayInUseEntity) {
-            PacketPlayInUseEntity p = (PacketPlayInUseEntity) packet;
-            if (p.c() == null) {
-                if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
+            Object action = packetData.getField("b"); // PacketPlayInUseEntity.b : EnumEntityUseAction
+            Optional<EnumHand> hand = Util.getFieldOptional(null, "a", action); // EnumEntityUseAction.a : EnumHand
+            if (hand.isEmpty()) {
+                if (checkItem(packetData, EnumHand.a) || checkItem(packetData, EnumHand.b)) { // a = MAIN_HAND, b = OFF_HAND
                     return Collections.emptyList();
                 }
             } else {
-                if (checkItem(packetData, p.c())) return Collections.emptyList();
+                if (checkItem(packetData, hand.get())) return Collections.emptyList();
             }
-        } else if (packet instanceof PacketPlayInUseItem) {
-            PacketPlayInUseItem p = (PacketPlayInUseItem) packet;
-            if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
+        } else if (packet instanceof PacketPlayInUseItem p) {
+            if (checkItem(packetData, EnumHand.a) || checkItem(packetData, EnumHand.b)) { // a = MAIN_HAND, b = OFF_HAND
                 EntityPlayer player = ((CraftPlayer) packetData.getPlayer()).getHandle();
                 Bukkit.getScheduler().runTask(SpigotPlugin.getInstance(), () -> {
-                    player.playerConnection.sendPacket(new PacketPlayOutBlockChange(player.world, p.c().getBlockPosition()));
-                    player.playerConnection.sendPacket(new PacketPlayOutBlockChange(player.world, p.c().getBlockPosition().shift(p.c().getDirection())));
+                    // player.playerConnection.sendPacket
+                    // p.getWorldServer(), p.getHitResult().getBlockPos()
+                    // p.getWorldServer(), p.getHitResult().getBlockPos().shift(p.getHitResult().getDirection())
+                    player.b.a(new PacketPlayOutBlockChange(player.x(), p.c().a()));
+                    player.b.a(new PacketPlayOutBlockChange(player.x(), p.c().a().a(p.c().b())));
                 });
                 return Collections.emptyList();
             }
         } else if (packet instanceof PacketPlayInBlockPlace) {
-            if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
+            if (checkItem(packetData, EnumHand.a) || checkItem(packetData, EnumHand.b)) { // a = MAIN_HAND, b = OFF_HAND
                 return Collections.emptyList();
             }
         } else if (packet instanceof PacketPlayInArmAnimation) {
-            if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
+            if (checkItem(packetData, EnumHand.a) || checkItem(packetData, EnumHand.b)) { // a = MAIN_HAND, b = OFF_HAND
                 return Collections.emptyList();
             }
         } else if (packet instanceof PacketPlayInWindowClick) {
-            reverseProcessItemStack(packetData.getField("item"));
+            reverseProcessItemStack(packetData.getField("g"));
         } else if (packet instanceof PacketPlayInCloseWindow) {
             if (packetData.getPlayer().getOpenInventory().getType() == InventoryType.MERCHANT) {
                 // re-add lore after trading
@@ -91,7 +96,7 @@ public class PacketRewriter {
      * @return true if the item cannot be used
      */
     private static boolean checkItem(@NotNull PacketData packetData, EnumHand hand) {
-        EquipmentSlot slot = hand == EnumHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND;
+        EquipmentSlot slot = hand == EnumHand.a ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND; // a = MAIN_HAND
         org.bukkit.inventory.ItemStack stack = packetData.getPlayer().getInventory().getItem(slot);
         if (!Util.canUseItem(packetData.getPlayer(), stack)) {
             SpigotPlugin.scheduleInventoryUpdate(packetData.getPlayer());
@@ -105,13 +110,13 @@ public class PacketRewriter {
         Packet<?> packet = packetData.getPacket();
         if (packet instanceof PacketPlayOutWindowItems) {
             if (packetData.getPlayer().getOpenInventory().getType() != InventoryType.MERCHANT) {
-                for (ItemStack stack : packetData.<List<ItemStack>>getField("b")) {
+                for (ItemStack stack : packetData.<List<ItemStack>>getField("c")) {
                     processItemStack(packetData, stack);
                 }
             }
         } else if (packet instanceof PacketPlayOutSetSlot) {
             if (packetData.getPlayer().getOpenInventory().getType() != InventoryType.MERCHANT) {
-                processItemStack(packetData, packetData.getField("c"));
+                processItemStack(packetData, packetData.getField("f"));
             }
         }
         return Collections.singletonList(packet);
@@ -121,52 +126,58 @@ public class PacketRewriter {
         if (item == null) return;
         String text = getRequiredLevelText(data, item);
         if (text == null) return;
-        boolean hadTag = item.hasTag();
+        boolean hadTag = item.t(); // hasTag
         NBTTagCompound tag;
         if (hadTag) {
-            tag = item.getOrCreateTag();
+            tag = item.v(); // getOrCreateTag
         } else {
             tag = new NBTTagCompound();
         }
-        if (tag.hasKeyOfType("LifePvELevel.HadTag", 99)) {
+        if (tag.b("LifePvELevel.HadTag", 99)) { // hasKeyOfType
             return;
         }
-        if (tag.hasKeyOfType("LifePvELevel.modifiedTag", 99)) {
+        if (tag.b("LifePvELevel.modifiedTag", 99)) { // hasKeyOfType
             // should not happen but just in case
             return;
         }
-        AtomicReference<NBTTagCompound> displayTag = new AtomicReference<>(tag.getCompound("display"));
+        AtomicReference<NBTTagCompound> displayTag = new AtomicReference<>(tag.p("display")); // getCompound
         AtomicInteger lines = new AtomicInteger();
-        boolean hadDisplayTag = tag.hasKeyOfType("display", 10);
+        boolean hadDisplayTag = tag.b("display", 10); // hasKeyOfType
         boolean hadLoreTag = false;
         // false if successful; true if item does not have required level text
         final NBTTagCompound tag2 = tag;
         Consumer<NBTTagList> addLore = list -> {
-            list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(new ChatComponentText(" "))));
-            list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(new ChatComponentText(text).a(cm -> cm.setItalic(false)))));
+            list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(IChatBaseComponent.a(" ")))); // valueOf(serialize(literal(" ")))
+            IChatMutableComponent textComponent = IChatBaseComponent.b(text); // literal(text)
+            ChatModifier cm = textComponent.a(); // getChatModifier
+            textComponent.a(cm.b(false)); // setChatModifier(cm.setItalic(false))
+            list.add(NBTTagString.a(IChatBaseComponent.ChatSerializer.a(textComponent))); // valueOf(serialize(textComponent))
             lines.addAndGet(2);
             if (displayTag.get() != null) {
-                displayTag.get().set("Lore", list);
+                displayTag.get().a("Lore", list); // set
             }
-            tag2.set("display", displayTag.get());
+            tag2.a("display", displayTag.get()); // set
         };
         if (displayTag.get() != null) {
-            if (displayTag.get().hasKeyOfType("Lore", 8) || displayTag.get().hasKeyOfType("Lore", 9)) {
+            if (displayTag.get().b("Lore", 8) || displayTag.get().b("Lore", 9)) { // hasKeyOfType, hasKeyOfType
                 hadLoreTag = true;
-                if (displayTag.get().hasKeyOfType("Lore", 8)) {
+                if (displayTag.get().b("Lore", 8)) { // hasKeyOfType
                     try {
-                        IChatBaseComponent component = IChatBaseComponent.ChatSerializer.a(displayTag.get().getString("Lore"));
+                        IChatMutableComponent component = IChatBaseComponent.ChatSerializer.a(displayTag.get().l("Lore")); // serialize(getString("Lore")
                         if (component != null) {
-                            component.addSibling(new ChatComponentText(" "));
-                            component.addSibling(new ChatComponentText(text).a(cm -> cm.setItalic(false)));
+                            component.b(IChatBaseComponent.b(" ")); // addSibling(literal(" "))
+                            IChatMutableComponent textComponent = IChatBaseComponent.b(text); // literal(text)
+                            ChatModifier cm = textComponent.a(); // getChatModifier
+                            textComponent.a(cm.b(false)); // setChatModifier(cm.setItalic(false))
+                            component.b(textComponent); // addSibling(textComponent)
                             lines.addAndGet(2);
-                            displayTag.get().setString("Lore", IChatBaseComponent.ChatSerializer.a(component));
-                            tag.set("display", displayTag.get());
+                            displayTag.get().a("Lore", IChatBaseComponent.ChatSerializer.a(component)); // set(serialize(component))
+                            tag.a("display", displayTag.get()); // set
                         }
                     } catch (JsonParseException ignored) {
                     }
                 } else {
-                    NBTTagList list = displayTag.get().getList("Lore", 8);
+                    NBTTagList list = displayTag.get().c("Lore", 8); // getList
                     addLore.accept(list);
                 }
             } else {
@@ -177,25 +188,25 @@ public class PacketRewriter {
             displayTag.set(new NBTTagCompound());
             NBTTagList list = new NBTTagList();
             addLore.accept(list);
-            tag.set("display", displayTag.get());
+            tag.a("display", displayTag.get()); // set
         }
         if (lines.get() >= 1) {
-            tag.setInt("LifePvELevel.modifiedTag", lines.get());
+            tag.a("LifePvELevel.modifiedTag", lines.get()); // setInt
         } else {
             return;
         }
-        tag.setBoolean("LifePvELevel.HadDisplayTag", hadDisplayTag);
-        tag.setBoolean("LifePvELevel.HadLoreTag", hadLoreTag);
-        tag.setBoolean("LifePvELevel.HadTag", hadTag);
-        item.setTag(tag);
+        tag.a("LifePvELevel.HadDisplayTag", hadDisplayTag); // setBoolean
+        tag.a("LifePvELevel.HadLoreTag", hadLoreTag); // setBoolean
+        tag.a("LifePvELevel.HadTag", hadTag); // setBoolean
+        item.c(tag); // setTag
     }
 
     private static @Nullable String getRequiredLevelText(@NotNull PacketData data, @NotNull ItemStack item) {
-        NBTTagCompound tag = item.getTag();
+        NBTTagCompound tag = item.u(); // getTag
         if (tag == null) {
             return null;
         }
-        String key = tag.hasKeyOfType("MYTHIC_TYPE", 8) ? tag.getString("MYTHIC_TYPE") : null;
+        String key = tag.b("MYTHIC_TYPE", 8) ? tag.l("MYTHIC_TYPE") : null; // hasKeyOfType ? getString : null
         boolean keyed = false;
         if (key == null) {
             key = ":" + CraftItemStack.asBukkitCopy(item).getType().name() + ":" + Util.toSortedString(tag);
@@ -223,61 +234,61 @@ public class PacketRewriter {
 
     public static void reverseProcessItemStack(@Nullable ItemStack item) {
         if (item == null) return;
-        if (!item.hasTag()) return;
-        NBTTagCompound tag = item.getOrCreateTag();
-        if (!tag.hasKeyOfType("LifePvELevel.HadTag", 99)) {
+        if (!item.t()) return; // hasTag
+        NBTTagCompound tag = item.v(); // getOrCreateTag
+        if (!tag.b("LifePvELevel.HadTag", 99)) { // hasKeyOfType
             return;
         }
-        if (!tag.hasKeyOfType("LifePvELevel.modifiedTag", 99)) {
+        if (!tag.b("LifePvELevel.modifiedTag", 99)) { // hasKeyOfType
             return;
         }
-        boolean hadTag = tag.getBoolean("LifePvELevel.HadTag");
+        boolean hadTag = tag.b("LifePvELevel.HadTag"); // getBoolean
         if (!hadTag) {
-            item.setTag(null);
+            item.c((NBTTagCompound) null); // setTag
             return;
         }
         Runnable removeTags = () -> {
-            tag.remove("LifePvELevel.HadTag");
-            tag.remove("LifePvELevel.HadDisplayTag");
-            tag.remove("LifePvELevel.HadLoreTag");
-            tag.remove("LifePvELevel.modifiedTag");
-            item.setTag(tag);
+            tag.r("LifePvELevel.HadTag"); // remove
+            tag.r("LifePvELevel.HadDisplayTag"); // remove
+            tag.r("LifePvELevel.HadLoreTag"); // remove
+            tag.r("LifePvELevel.modifiedTag"); // remove
+            item.c(tag); // setTag
         };
-        boolean hadDisplayTag = tag.getBoolean("LifePvELevel.HadDisplayTag");
+        boolean hadDisplayTag = tag.q("LifePvELevel.HadDisplayTag"); // getBoolean
         if (!hadDisplayTag) {
-            tag.remove("display");
+            tag.r("display"); // remove
             removeTags.run();
             return;
         }
-        boolean hadLoreTag = tag.getBoolean("LifePvELevel.HadLoreTag");
-        int count = tag.getInt("LifePvELevel.modifiedTag");
-        NBTTagCompound displayTag = tag.getCompound("display");
+        boolean hadLoreTag = tag.q("LifePvELevel.HadLoreTag"); // getBoolean
+        int count = tag.h("LifePvELevel.modifiedTag"); // getInt
+        NBTTagCompound displayTag = tag.p("display"); // getCompound
         if (displayTag != null && !hadLoreTag) {
-            displayTag.remove("Lore");
-            tag.set("display", displayTag);
+            displayTag.r("Lore"); // remove
+            tag.a("display", displayTag); // set
             removeTags.run();
             return;
         }
-        if (displayTag != null && (displayTag.hasKeyOfType("Lore", 8) || displayTag.hasKeyOfType("Lore", 9))) {
-            if (displayTag.hasKeyOfType("Lore", 8)) {
+        if (displayTag != null && (displayTag.b("Lore", 8) || displayTag.b("Lore", 9))) { // hasKeyOfType, hasKeyOfType
+            if (displayTag.b("Lore", 8)) { // hasKeyOfType
                 try {
-                    IChatBaseComponent component = IChatBaseComponent.ChatSerializer.a(displayTag.getString("Lore"));
+                    IChatBaseComponent component = IChatBaseComponent.ChatSerializer.a(displayTag.l("Lore")); // getString
                     if (component != null) {
                         for (int i = 0; i < count; i++) {
-                            component.getSiblings().remove(component.getSiblings().size() - 1);
+                            component.c().remove(component.c().size() - 1); // getSiblings().remove(component.getSiblings().size() - 1)
                         }
-                        displayTag.setString("Lore", IChatBaseComponent.ChatSerializer.a(component));
-                        tag.set("display", displayTag);
+                        displayTag.a("Lore", IChatBaseComponent.ChatSerializer.a(component)); // setString
+                        tag.a("display", displayTag); // set
                     }
                 } catch (JsonParseException ignored) {
                 }
             } else {
-                NBTTagList list = displayTag.getList("Lore", 8);
+                NBTTagList list = displayTag.c("Lore", 8); // getList
                 for (int i = 0; i < count; i++) {
                     list.remove(list.size() - 1);
                 }
-                displayTag.set("Lore", list);
-                tag.set("display", displayTag);
+                displayTag.a("Lore", list); // set
+                tag.a("display", displayTag); // set
             }
         }
         removeTags.run();

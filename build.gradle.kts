@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.azisaba"
-version = "1.0.0-SNAPSHOT"
+version = "2.0.0-SNAPSHOT"
 
 repositories {
     mavenLocal()
@@ -19,12 +19,12 @@ repositories {
 }
 
 dependencies {
-    implementation("com.zaxxer:HikariCP:4.0.3")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.6")
-    compileOnly("org.spigotmc:spigot:1.15.2-R0.1-SNAPSHOT")
+    implementation("com.zaxxer:HikariCP:5.0.1")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")
+    compileOnly("org.spigotmc:spigot:1.19.4-R0.1-SNAPSHOT")
     compileOnly("me.neznamy:tab-api:3.0.2")
     compileOnly("org.jetbrains:annotations:23.0.0")
-    compileOnly("io.lumine:Mythic-Dist:4.13.0")
+    compileOnly("io.lumine:Mythic-Dist:5.2.1")
 
     // for migrations
     compileOnly("com.github.Staartvin:Statz:v1.5.5") {
@@ -35,7 +35,7 @@ dependencies {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
     withJavadocJar()
     withSourcesJar()
 }

@@ -4,11 +4,13 @@ import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
 import net.azisaba.lifepvelevel.SpigotPlugin;
 import net.azisaba.lifepvelevel.sql.DBConnector;
-import net.minecraft.server.v1_15_R1.NBTBase;
-import net.minecraft.server.v1_15_R1.NBTTagCompound;
-import net.minecraft.server.v1_15_R1.NBTTagString;
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.server.network.PlayerConnection;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permissible;
@@ -21,6 +23,7 @@ import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -30,11 +33,15 @@ import java.util.stream.Stream;
 public class Util {
     @NotNull
     public static Channel getChannel(@NotNull Player player) {
-        return ((CraftPlayer) player)
-                .getHandle()
-                .playerConnection
-                .networkManager
-                .channel;
+        try {
+            PlayerConnection pc = ((CraftPlayer) player).getHandle().b;
+            Field field = pc.getClass().getDeclaredField("h");
+            field.setAccessible(true);
+            NetworkManager nm = (NetworkManager) field.get(pc);
+            return nm.m;
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Nullable
@@ -64,6 +71,14 @@ public class Util {
             return (T) f.get(instance);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> @NotNull Optional<T> getFieldOptional(@Nullable Class<?> clazz, @NotNull String name, Object instance) {
+        try {
+            return Optional.ofNullable(getField(clazz, name, instance));
+        } catch (RuntimeException e) {
+            return Optional.empty();
         }
     }
 
@@ -133,30 +148,32 @@ public class Util {
     @Contract("null -> null")
     public static String getMythicType(@Nullable ItemStack item) {
         if (item == null || item.getType().isAir()) return null;
-        net.minecraft.server.v1_15_R1.ItemStack nms = CraftItemStack.asNMSCopy(item);
-        if (!nms.hasTag()) return null;
-        NBTTagCompound tag = nms.getOrCreateTag();
-        if (!tag.hasKeyOfType("MYTHIC_TYPE", 8)) return null;
-        return tag.getString("MYTHIC_TYPE");
+        net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(item);
+        if (!nms.t()) return null; // hasTag
+        NBTTagCompound tag = nms.v(); // getOrCreateTag
+        if (!tag.b("MYTHIC_TYPE", 8)) return null; // hasKeyOfType
+        return tag.l("MYTHIC_TYPE"); // getString
     }
 
     @Contract("null -> null")
-    public static String getMythicType(@Nullable net.minecraft.server.v1_15_R1.ItemStack nms) {
+    public static String getMythicType(@Nullable net.minecraft.world.item.ItemStack nms) {
         if (nms == null) return null;
-        if (!nms.hasTag()) return null;
-        NBTTagCompound tag = nms.getOrCreateTag();
-        if (!tag.hasKeyOfType("MYTHIC_TYPE", 8)) return null;
-        return tag.getString("MYTHIC_TYPE");
+        if (!nms.t()) return null; // hasTag
+        NBTTagCompound tag = nms.v(); // getOrCreateTag
+        if (!tag.b("MYTHIC_TYPE", 8)) return null; // hasKeyOfType
+        return tag.l("MYTHIC_TYPE"); // getString
     }
 
     @Nullable
     private static String getMMIDOrTagInMainHand(@NotNull Player player) {
         ItemStack stack = player.getInventory().getItemInMainHand();
         if (stack.getType().isAir()) return null;
-        net.minecraft.server.v1_15_R1.ItemStack nms = CraftItemStack.asNMSCopy(stack);
-        if (!nms.hasTag()) return null;
-        NBTTagCompound tag = nms.getOrCreateTag();
-        if (tag.hasKeyOfType("MYTHIC_TYPE", 8)) return tag.getString("MYTHIC_TYPE");
+        net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(stack);
+        if (!nms.t()) return null; // hasTag
+        NBTTagCompound tag = nms.v(); // getOrCreateTag
+        if (tag.b("MYTHIC_TYPE", 8)) { // hasKeyOfType
+            return tag.l("MYTHIC_TYPE"); // getString
+        }
         return toSortedString(tag);
     }
 
@@ -172,18 +189,18 @@ public class Util {
     }
 
     public static long getRequiredLevel(@NotNull ItemStack stack) {
-        net.minecraft.server.v1_15_R1.ItemStack nms = CraftItemStack.asNMSCopy(stack);
-        if (!nms.hasTag()) {
+        net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(stack);
+        if (!nms.t()) { // hasTag
             String key = ":" + stack.getType().name() + ":null";
             return DBConnector.getRequiredLevel(key);
         }
-        NBTTagCompound tag = nms.getOrCreateTag();
-        if (!tag.hasKeyOfType("MYTHIC_TYPE", 8)) {
+        NBTTagCompound tag = nms.v(); // getOrCreateTag
+        if (!tag.b("MYTHIC_TYPE", 8)) { // hasKeyOfType
             String key = ":" + stack.getType().name() + ":" + toSortedString(tag);
             return DBConnector.getRequiredLevel(key);
         }
-        String mmid = tag.getString("MYTHIC_TYPE");
-        return DBConnector.getRequiredLevel(mmid);
+        String mythicType = tag.l("MYTHIC_TYPE"); // getString
+        return DBConnector.getRequiredLevel(mythicType);
     }
 
     @Contract("_, null -> true")
@@ -200,7 +217,7 @@ public class Util {
     }
 
     public static @NotNull String toSortedString(@NotNull NBTTagCompound tag) {
-        Map<String, NBTBase> map = getField(NBTTagCompound.class, "map", tag);
+        Map<String, NBTBase> map = getField(NBTTagCompound.class, "x", tag);
         StringBuilder sb = new StringBuilder("{");
         List<String> keys = Lists.newArrayList(map.keySet());
         Collections.sort(keys);
@@ -240,7 +257,7 @@ public class Util {
         return SpigotPlugin.getInstance().isAlwaysBypass();
     }
 
-    public static boolean canBypass(@NotNull Permissible permissible, @Nullable net.minecraft.server.v1_15_R1.ItemStack stack) {
+    public static boolean canBypass(@NotNull Permissible permissible, @Nullable net.minecraft.world.item.ItemStack stack) {
         if (permissible.hasPermission("lifepvelevel.bypass_level")) {
             return true;
         }

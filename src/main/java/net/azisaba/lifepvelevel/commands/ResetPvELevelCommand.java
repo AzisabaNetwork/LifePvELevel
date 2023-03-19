@@ -21,7 +21,7 @@ import java.util.List;
 public class ResetPvELevelCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             return true;
         }
         if (args.length > 0 && (args[0].endsWith("L") || args[0].endsWith("l"))) {
@@ -43,7 +43,6 @@ public class ResetPvELevelCommand implements TabExecutor {
                 return true;
             }
         }
-        Player player = (Player) sender;
         PlayerProfile profile = mcMMO.getDatabaseManager().loadPlayerProfile(player.getName());
         int acrobaticsLevel = profile.getSkillLevel(PrimarySkillType.ACROBATICS);
         long kills = (long) Math.floor(statz.getStatzAPI().getTotalOf(PlayerStat.KILLS_MOBS, profile.getUniqueId(), null));

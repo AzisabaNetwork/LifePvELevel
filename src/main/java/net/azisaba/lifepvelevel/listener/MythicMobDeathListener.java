@@ -1,6 +1,6 @@
 package net.azisaba.lifepvelevel.listener;
 
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobLootDropEvent;
+import io.lumine.mythic.bukkit.events.MythicMobLootDropEvent;
 import net.azisaba.lifepvelevel.messages.Messages;
 import net.azisaba.lifepvelevel.sql.DBConnector;
 import net.azisaba.lifepvelevel.util.LevelCalculator;
@@ -12,8 +12,7 @@ import org.bukkit.event.Listener;
 public class MythicMobDeathListener implements Listener {
     @EventHandler
     public void giveExp(MythicMobLootDropEvent e) {
-        if (!(e.getKiller() instanceof Player)) return;
-        Player killer = (Player) e.getKiller();
+        if (!(e.getKiller() instanceof Player killer)) return;
         int exp = e.getExp();
         long currentExp = DBConnector.getExp(killer.getUniqueId());
         long oldLevel = LevelCalculator.toLevel(currentExp);
