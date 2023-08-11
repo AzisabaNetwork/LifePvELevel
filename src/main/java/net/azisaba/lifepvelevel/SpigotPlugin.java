@@ -4,6 +4,7 @@ import me.neznamy.tab.api.TabAPI;
 import me.neznamy.tab.api.event.plugin.TabLoadEvent;
 import net.azisaba.lifepvelevel.commands.PvELevelCommand;
 import net.azisaba.lifepvelevel.commands.PvELevelItemCommand;
+import net.azisaba.lifepvelevel.commands.PvELevelRankingCommand;
 import net.azisaba.lifepvelevel.commands.ResetPvELevelCommand;
 import net.azisaba.lifepvelevel.listener.MythicMobDeathListener;
 import net.azisaba.lifepvelevel.listener.PlayerListener;
@@ -65,6 +66,7 @@ public final class SpigotPlugin extends JavaPlugin {
         Objects.requireNonNull(Bukkit.getPluginCommand("pvelevel")).setExecutor(new PvELevelCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("pvelevelitem")).setExecutor(new PvELevelItemCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("resetpvelevel")).setExecutor(new ResetPvELevelCommand());
+        Objects.requireNonNull(Bukkit.getPluginCommand("pvelevelranking")).setExecutor(new PvELevelRankingCommand());
 
         // update items data (blocking)
         DBConnector.updateSync();

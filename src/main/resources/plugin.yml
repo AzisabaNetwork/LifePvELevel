@@ -15,6 +15,9 @@ commands:
     permission: lifepvelevel.command.pvelevelitem
   resetpvelevel:
     permission: lifepvelevel.command.resetpvelevel
+  pvelevelranking:
+    permission: lifepvelevel.command.pvelevelranking
+    aliases: [pvelevelrank]
 permissions:
   lifepvelevel.command.pvelevel:
     description: Allows the player to use /pvelevel
