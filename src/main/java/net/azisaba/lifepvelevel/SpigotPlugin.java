@@ -13,10 +13,21 @@ import net.azisaba.lifepvelevel.sql.DBConnector;
 import net.azisaba.lifepvelevel.sql.DatabaseConfig;
 import net.azisaba.lifepvelevel.util.LevelCalculator;
 import net.azisaba.lifepvelevel.util.PacketUtil;
+import net.azisaba.lifepvelevel.util.Util;
+import net.azisaba.loreeditor.api.event.EventBus;
+import net.azisaba.loreeditor.api.event.ItemEvent;
+import net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component;
+import net.azisaba.loreeditor.libs.net.kyori.adventure.text.format.TextDecoration;
+import net.azisaba.loreeditor.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -80,8 +91,47 @@ public final class SpigotPlugin extends JavaPlugin {
             DBConnector.updatePlayerSync(p.getUniqueId(), p.getName());
         });
 
+        EventBus.INSTANCE.register(this, ItemEvent.class, 0, e -> {
+            String text = getRequiredLevelText(e.getPlayer(), e.getBukkitItem());
+            if (text != null) {
+                e.addLore(Component.space());
+                e.addLore(LegacyComponentSerializer.legacySection().deserialize(text).decoration(TextDecoration.ITALIC, false));
+            }
+        });
+
         registerPlaceholders();
         TabAPI.getInstance().getEventBus().register(TabLoadEvent.class, e -> registerPlaceholders());
+    }
+
+    private static @Nullable String getRequiredLevelText(@NotNull Player player, @NotNull ItemStack item) {
+        NBTTagCompound tag = CraftItemStack.asNMSCopy(item).getTag();
+        if (tag == null) {
+            return null;
+        }
+        String key = tag.hasKeyOfType("MYTHIC_TYPE", 8) ? tag.getString("MYTHIC_TYPE") : null;
+        boolean keyed = false;
+        if (key == null) {
+            key = ":" + item.getType().name() + ":" + Util.toSortedString(tag);
+            keyed = true;
+        }
+        long requiredLevel = DBConnector.getRequiredLevel(key);
+        if (keyed && requiredLevel == 0) {
+            requiredLevel = DBConnector.getRequiredLevel(":" + item.getType().name() + ":null");
+            if (requiredLevel == 0) {
+                // prevent showing level requirement for unrelated items
+                return null;
+            }
+        }
+        long playerLevel = LevelCalculator.toLevel(DBConnector.getExp(player.getUniqueId()));
+        ChatColor color = ChatColor.RED;
+        if (Util.canBypass(player, item)) {
+            color = ChatColor.GREEN;
+        }
+        if (!SpigotPlugin.getInstance().getEnforcedMythicType().contains(Util.getMythicType(item)) &&
+                requiredLevel >= 0 && (SpigotPlugin.getInstance().isAlwaysBypassIfNotNegative() || playerLevel >= requiredLevel)) {
+            color = ChatColor.GREEN;
+        }
+        return Messages.getFormattedText(player, "item.lore.required_level", "" + color + requiredLevel);
     }
 
     private static void registerPlaceholders() {

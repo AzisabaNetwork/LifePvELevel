@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.azisaba"
-version = "1.1.0-SNAPSHOT"
+version = "1.2.0-SNAPSHOT"
 
 repositories {
     mavenLocal()
@@ -16,6 +16,7 @@ repositories {
     maven { url = uri("https://mvn.lumine.io/repository/maven-public/") } // for MythicMobs
     maven { url = uri("https://nexus.neetgames.com/repository/maven-public/") } // for mcMMO
     maven { url = uri("https://repo.kryptonmc.org/releases/") } // for TAB
+    maven { url = uri("https://repo.azisaba.net/repository/maven-public/") } // LoreEditor
 }
 
 dependencies {
@@ -25,6 +26,7 @@ dependencies {
     compileOnly("me.neznamy:tab-api:3.0.2")
     compileOnly("org.jetbrains:annotations:23.0.0")
     compileOnly("io.lumine:Mythic-Dist:4.13.0")
+    compileOnly("net.azisaba.loreeditor:api:1.0.0-SNAPSHOT:all")
 
     // for migrations
     compileOnly("com.github.Staartvin:Statz:v1.5.5") {

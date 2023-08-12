@@ -5,6 +5,7 @@ api-version: 1.15
 depend:
   - TAB
   - MythicMobs
+  - LoreEditor
 softdepend:
   - Statz
   - mcMMO
