@@ -35,6 +35,12 @@ public class PacketRewriter {
                 });
                 return Collections.emptyList();
             }
+        } else if (packet instanceof PacketPlayInBlockDig) {
+            if (((PacketPlayInBlockDig) packet).d() == PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK) {
+                if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
+                    return Collections.emptyList();
+                }
+            }
         } else if (packet instanceof PacketPlayInBlockPlace) {
             if (checkItem(packetData, EnumHand.MAIN_HAND) || checkItem(packetData, EnumHand.OFF_HAND)) {
                 return Collections.emptyList();

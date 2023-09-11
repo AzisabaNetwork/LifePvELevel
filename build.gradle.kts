@@ -8,7 +8,6 @@ group = "net.azisaba"
 version = "1.2.0-SNAPSHOT"
 
 repositories {
-    mavenLocal()
     mavenCentral()
     maven { url = uri("https://oss.sonatype.org/content/groups/public/") }
     //maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
@@ -17,6 +16,7 @@ repositories {
     maven { url = uri("https://nexus.neetgames.com/repository/maven-public/") } // for mcMMO
     maven { url = uri("https://repo.kryptonmc.org/releases/") } // for TAB
     maven { url = uri("https://repo.azisaba.net/repository/maven-public/") } // LoreEditor
+    mavenLocal()
 }
 
 dependencies {
