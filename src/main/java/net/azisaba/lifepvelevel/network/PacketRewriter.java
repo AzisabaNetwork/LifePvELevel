@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
+// TODO: some plugin may interfere with this (e.g. ProtocolLib and other plugins depending on it)
 public class PacketRewriter {
     public static List<Object> processIncomingPacket(@NotNull PacketData packetData) {
         Packet<?> packet = packetData.getPacket();

@@ -2,12 +2,10 @@ package net.azisaba.lifepvelevel;
 
 import me.neznamy.tab.api.TabAPI;
 import me.neznamy.tab.api.event.plugin.TabLoadEvent;
-import net.azisaba.lifepvelevel.commands.PvELevelCommand;
-import net.azisaba.lifepvelevel.commands.PvELevelItemCommand;
-import net.azisaba.lifepvelevel.commands.PvELevelRankingCommand;
-import net.azisaba.lifepvelevel.commands.ResetPvELevelCommand;
+import net.azisaba.lifepvelevel.commands.*;
 import net.azisaba.lifepvelevel.listener.MythicMobDeathListener;
 import net.azisaba.lifepvelevel.listener.PlayerListener;
+import net.azisaba.lifepvelevel.listener.PvELevelBoostItemListener;
 import net.azisaba.lifepvelevel.messages.Messages;
 import net.azisaba.lifepvelevel.sql.DBConnector;
 import net.azisaba.lifepvelevel.sql.DatabaseConfig;
@@ -72,18 +70,22 @@ public final class SpigotPlugin extends JavaPlugin {
         // register listener
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
         Bukkit.getPluginManager().registerEvents(new MythicMobDeathListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PvELevelBoostItemListener(this), this);
 
         // register commands
         Objects.requireNonNull(Bukkit.getPluginCommand("pvelevel")).setExecutor(new PvELevelCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("pvelevelitem")).setExecutor(new PvELevelItemCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("resetpvelevel")).setExecutor(new ResetPvELevelCommand());
         Objects.requireNonNull(Bukkit.getPluginCommand("pvelevelranking")).setExecutor(new PvELevelRankingCommand());
+        Objects.requireNonNull(Bukkit.getPluginCommand("checkpvelevelboost")).setExecutor(new CheckPvELevelBoost(this));
+        Objects.requireNonNull(Bukkit.getPluginCommand("givepvelevelboostitem")).setExecutor(new GivePvELevelBoostItemCommand(this));
 
         // update items data (blocking)
         DBConnector.updateSync();
 
         // schedule task
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, DBConnector::updateAsync, 20 * 60, 20 * 60);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, DBConnector::refreshBoostData, 20 * 5, 20 * 5);
 
         // inject packet handler
         Bukkit.getOnlinePlayers().forEach(p -> {

@@ -14,7 +14,7 @@ public class MythicMobDeathListener implements Listener {
     public void giveExp(MythicMobLootDropEvent e) {
         if (!(e.getKiller() instanceof Player)) return;
         Player killer = (Player) e.getKiller();
-        int exp = e.getExp();
+        int exp = (int) (e.getExp() * (1 + (DBConnector.getBoostedPercentage() / 100.0)));
         long currentExp = DBConnector.getExp(killer.getUniqueId());
         long oldLevel = LevelCalculator.toLevel(currentExp);
         long newLevel = LevelCalculator.toLevel(currentExp + exp);

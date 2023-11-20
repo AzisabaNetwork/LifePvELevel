@@ -3,12 +3,11 @@ package net.azisaba.lifepvelevel.sql;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import net.azisaba.lifepvelevel.SpigotPlugin;
+import net.azisaba.lifepvelevel.model.BoostData;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.Async;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 import org.mariadb.jdbc.Driver;
 
 import java.sql.Connection;
@@ -16,19 +15,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DBConnector {
     private static final Map<String, Long> REQUIRED_LEVELS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> PLAYER_EXP = new ConcurrentHashMap<>();
     private static @Nullable HikariDataSource dataSource;
+    private static List<BoostData> boostDataList = new ArrayList<>();
+    private static long lastUpdate = 0L;
 
     /**
      * Initializes the data source and pool.
@@ -59,6 +54,14 @@ public class DBConnector {
                 "  `id` BIGINT NOT NULL AUTO_INCREMENT,\n" +
                 "  `mmid` LONGTEXT NOT NULL UNIQUE,\n" +
                 "  `required_level` INT NOT NULL DEFAULT 0,\n" +
+                "  PRIMARY KEY (`id`)\n" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;", PreparedStatement::execute);
+        runPrepareStatement("CREATE TABLE IF NOT EXISTS `boosts` (\n" +
+                "  `id` BIGINT NOT NULL AUTO_INCREMENT,\n" +
+                "  `uuid` VARCHAR(36) NOT NULL,\n" +
+                "  `percentage` BIGINT NOT NULL,\n" +
+                "  `start` BIGINT NOT NULL,\n" +
+                "  `end` BIGINT NOT NULL,\n" +
                 "  PRIMARY KEY (`id`)\n" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;", PreparedStatement::execute);
     }
@@ -260,5 +263,85 @@ public class DBConnector {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @NotNull
+    public static Optional<String> getName(@NotNull UUID uuid) {
+        try {
+            return getPrepareStatement("SELECT `name` FROM `players` WHERE `uuid` = ?", statement -> {
+                statement.setString(1, uuid.toString());
+                try (ResultSet rs = statement.executeQuery()) {
+                    if (rs.next()) {
+                        return Optional.of(rs.getString("name"));
+                    }
+                }
+                return Optional.empty();
+            });
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void addBoostAsync(@NotNull UUID uuid, long percentage, long start, long end) {
+        Bukkit.getScheduler().runTaskAsynchronously(SpigotPlugin.getInstance(), () -> {
+            try {
+                runPrepareStatement("INSERT INTO `boosts` (`uuid`, `percentage`, `start`, `end`) VALUES (?, ?, ?, ?)", statement -> {
+                    statement.setString(1, uuid.toString());
+                    statement.setLong(2, percentage);
+                    statement.setLong(3, start);
+                    statement.setLong(4, end);
+                    statement.executeUpdate();
+                });
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public static void addBoostAsyncByDuration(@NotNull UUID uuid, long percentage, long start, long durationMillis) {
+        addBoostAsync(uuid, percentage, start, start + durationMillis);
+    }
+
+    public static void tryRefreshBoostData() {
+        if (System.currentTimeMillis() - lastUpdate > 5000L) {
+            refreshBoostData();
+        }
+    }
+
+    public static void refreshBoostData() {
+        try {
+            runPrepareStatement("SELECT * FROM `boosts` WHERE `start` < ? AND `end` > ?", statement -> {
+                statement.setLong(1, System.currentTimeMillis());
+                statement.setLong(2, System.currentTimeMillis());
+                try (ResultSet rs = statement.executeQuery()) {
+                    List<BoostData> list = new ArrayList<>();
+                    while (rs.next()) {
+                        list.add(new BoostData(UUID.fromString(rs.getString("uuid")), rs.getLong("percentage"), rs.getLong("start"), rs.getLong("end")));
+                    }
+                    for (BoostData boostData : boostDataList) {
+                        if (!list.contains(boostData)) {
+                            Bukkit.getScheduler().runTaskAsynchronously(SpigotPlugin.getInstance(), () ->
+                                    Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "[PvE経験値ブースト] " +
+                                            ChatColor.WHITE + getName(boostData.uuid()).orElse("Unknown") +
+                                            ChatColor.LIGHT_PURPLE + "の" + ChatColor.GOLD + boostData.percentage() + "%" + ChatColor.LIGHT_PURPLE + "ブーストが期限切れになりました。")
+                            );
+                        }
+                    }
+                    boostDataList = list;
+                    lastUpdate = System.currentTimeMillis();
+                }
+            });
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Contract(pure = true)
+    public static @NotNull @UnmodifiableView List<@NotNull BoostData> getBoostDataList() {
+        return Collections.unmodifiableList(boostDataList);
+    }
+
+    public static long getBoostedPercentage() {
+        return boostDataList.stream().mapToLong(BoostData::percentage).sum();
     }
 }

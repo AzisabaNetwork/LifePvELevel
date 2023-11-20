@@ -4,11 +4,13 @@ main: net.azisaba.lifepvelevel.SpigotPlugin
 api-version: 1.15
 depend:
   - TAB
-  - MythicMobs
   - LoreEditor
+  - ItemStash
+  - MythicMobs
 softdepend:
   - Statz
   - mcMMO
+  - MyPet
 commands:
   pvelevel:
     permission: lifepvelevel.command.pvelevel
@@ -19,6 +21,11 @@ commands:
   pvelevelranking:
     permission: lifepvelevel.command.pvelevelranking
     aliases: [pvelevelrank]
+  checkpvelevelboost:
+    permission: lifepvelevel.command.checkpvelevelboost
+    aliases: [checkpveboost, cplb, cpb]
+  givepvelevelboostitem:
+    permission: lifepvelevel.command.givepvelevelboostitem
 permissions:
   lifepvelevel.command.pvelevel:
     description: Allows the player to use /pvelevel
@@ -29,6 +36,15 @@ permissions:
   lifepvelevel.command.pvelevelitem:
     description: Allows the player to use /pvelevelitem
     default: false
+  lifepvelevel.command.checkpvelevelboost:
+    description: Allows the player to use /checkpvelevelboost
+    default: true
+  lifepvelevel.command.givepvelevelboostitem:
+    description: Allows the player to use /givepvelevelboostitem
+    default: op
   lifepvelevel.bypass_level:
     description: Allows the player to bypass the level requirement
+    default: false
+  lifepvelevel.bypass_boost_limit:
+    description: Allows the player to bypass the boost cap
     default: false
