@@ -16,6 +16,13 @@ repositories {
     maven { url = uri("https://nexus.neetgames.com/repository/maven-public/") } // for mcMMO
     maven { url = uri("https://repo.kryptonmc.org/releases/") } // for TAB
     maven { url = uri("https://repo.azisaba.net/repository/maven-public/") } // LoreEditor, ItemStash
+    if (properties["azisabaNmsUsername"] != null && properties["azisabaNmsPassword"] != null) {
+        maven {
+            name = "azisabaNms"
+            credentials(PasswordCredentials::class)
+            url = uri("https://repo.azisaba.net/repository/nms/")
+        }
+    }
     mavenLocal()
 }
 
