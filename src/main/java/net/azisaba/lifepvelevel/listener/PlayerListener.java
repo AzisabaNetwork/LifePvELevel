@@ -248,7 +248,7 @@ public class PlayerListener implements Listener {
                 continue;
             }
             if (Util.getRequiredLevel(stack) != 0) {
-                e.getInventory().setRepairCost(1000000000);
+                e.getView().setRepairCost(1000000000);
                 e.setResult(null);
                 ((Player) e.getView().getPlayer()).updateInventory();
                 return;

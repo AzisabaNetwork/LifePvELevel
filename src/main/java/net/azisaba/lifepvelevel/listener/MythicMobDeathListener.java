@@ -1,6 +1,6 @@
 package net.azisaba.lifepvelevel.listener;
 
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobLootDropEvent;
+import io.lumine.mythic.bukkit.events.MythicMobLootDropEvent;
 import net.azisaba.lifepvelevel.messages.Messages;
 import net.azisaba.lifepvelevel.sql.DBConnector;
 import net.azisaba.lifepvelevel.util.LevelCalculator;
