@@ -111,7 +111,8 @@ public final class SpigotPlugin extends JavaPlugin {
         if (tag == null) {
             return null;
         }
-        String key = tag.contains("MYTHIC_TYPE", 8) ? tag.getString("MYTHIC_TYPE") : null;
+        CompoundTag publicBukkitValues = tag.getCompound("PublicBukkitValues");
+        String key = publicBukkitValues.contains("mythicmobs:type", 8) ? publicBukkitValues.getString("mythicmobs:type") : null;
         boolean keyed = false;
         if (key == null) {
             key = ":" + item.getType().name() + ":" + Util.toSortedString(tag);

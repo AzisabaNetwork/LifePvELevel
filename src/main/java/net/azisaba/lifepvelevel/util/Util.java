@@ -158,8 +158,8 @@ public class Util {
     public static String getMythicType(@Nullable ItemStack item) {
         CompoundTag tag = getCustomDataOrEmpty(item);
         var publicBukkitValues = tag.getCompound("PublicBukkitValues");
-        if (!publicBukkitValues.contains("MYTHIC_TYPE", 8)) return null;
-        return publicBukkitValues.getString("MYTHIC_TYPE");
+        if (!publicBukkitValues.contains("mythicmobs:type", 8)) return null;
+        return publicBukkitValues.getString("mythicmobs:type");
     }
 
     @Contract("null -> null")
@@ -169,8 +169,8 @@ public class Util {
         if (customData == null) return null;
         CompoundTag tag = customData.copyTag();
         var publicBukkitValues = tag.getCompound("PublicBukkitValues");
-        if (!publicBukkitValues.contains("MYTHIC_TYPE", 8)) return null;
-        return publicBukkitValues.getString("MYTHIC_TYPE");
+        if (!publicBukkitValues.contains("mythicmobs:type", 8)) return null;
+        return publicBukkitValues.getString("mythicmobs:type");
     }
 
     @Nullable

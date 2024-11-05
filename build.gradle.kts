@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "net.azisaba"
-version = "1.3.0+1.21.1"
+version = "1.3.0a+1.21.1"
 
 repositories {
     mavenCentral()
@@ -50,6 +50,7 @@ java {
 
 tasks {
     processResources {
+        doNotTrackState("plugin.yml should be updated every time")
         filteringCharset = "UTF-8"
         from(sourceSets.main.get().resources.srcDirs) {
             include("**")
