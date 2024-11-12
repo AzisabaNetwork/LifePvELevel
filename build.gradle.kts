@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.azisaba"
-version = "1.3.0"
+version = "2.0.0+1.15.2"
 
 repositories {
     mavenCentral()
@@ -14,7 +14,6 @@ repositories {
     maven { url = uri("https://jitpack.io/") } // Statz
     maven { url = uri("https://mvn.lumine.io/repository/maven-public/") } // for MythicMobs
     maven { url = uri("https://nexus.neetgames.com/repository/maven-public/") } // for mcMMO
-    maven { url = uri("https://repo.kryptonmc.org/releases/") } // for TAB
     maven { url = uri("https://repo.azisaba.net/repository/maven-public/") } // LoreEditor, ItemStash
     if (properties["azisabaNmsUsername"] != null && properties["azisabaNmsPassword"] != null) {
         maven {
@@ -29,8 +28,8 @@ repositories {
 dependencies {
     implementation("com.zaxxer:HikariCP:4.0.3")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.6")
+    compileOnly("net.azisaba:TAB-BukkitBridge:3.0.0")
     compileOnly("org.spigotmc:spigot:1.15.2-R0.1-SNAPSHOT")
-    compileOnly("me.neznamy:tab-api:3.0.2")
     compileOnly("org.jetbrains:annotations:23.0.0")
     compileOnly("io.lumine:Mythic-Dist:4.13.0")
     compileOnly("net.azisaba.loreeditor:api:1.0.0-SNAPSHOT:all")
@@ -40,8 +39,12 @@ dependencies {
     compileOnly("com.github.Staartvin:Statz:v1.5.5") {
         exclude("nl.lolmewn.stats", "Stats")
         exclude("me.staartvin", "PluginLibrary")
+        exclude("org.bukkit", "bukkit")
     }
-    compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.1.196")
+    compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.1.196") {
+        exclude("com.sk89q.worldguard", "worldguard-core")
+        exclude("com.sk89q.worldguard", "worldguard-legacy")
+    }
 }
 
 java {

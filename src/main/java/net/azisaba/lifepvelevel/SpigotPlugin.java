@@ -1,7 +1,5 @@
 package net.azisaba.lifepvelevel;
 
-import me.neznamy.tab.api.TabAPI;
-import me.neznamy.tab.api.event.plugin.TabLoadEvent;
 import net.azisaba.lifepvelevel.commands.*;
 import net.azisaba.lifepvelevel.listener.MythicMobDeathListener;
 import net.azisaba.lifepvelevel.listener.PlayerListener;
@@ -17,6 +15,8 @@ import net.azisaba.loreeditor.api.event.ItemEvent;
 import net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component;
 import net.azisaba.loreeditor.libs.net.kyori.adventure.text.format.TextDecoration;
 import net.azisaba.loreeditor.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.azisaba.tabbukkitbridge.data.DataKey;
+import net.azisaba.tabbukkitbridge.tab.TheTAB;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,6 +33,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 public final class SpigotPlugin extends JavaPlugin {
     private static final DecimalFormat FORMATTER_COMMAS = new DecimalFormat("#,###");
@@ -102,7 +103,7 @@ public final class SpigotPlugin extends JavaPlugin {
         });
 
         registerPlaceholders();
-        TabAPI.getInstance().getEventBus().register(TabLoadEvent.class, e -> registerPlaceholders());
+        TheTAB.enable();
     }
 
     private static @Nullable String getRequiredLevelText(@NotNull Player player, @NotNull ItemStack item) {
@@ -136,20 +137,26 @@ public final class SpigotPlugin extends JavaPlugin {
         return Messages.getFormattedText(player, "item.lore.required_level", "" + color + requiredLevel);
     }
 
+    private static <T> void registerPlayerPlaceholder(@NotNull T defaultValue, @NotNull String placeholder, @NotNull Function<Player, T> valueSupplier) {
+        DataKey<Player, T> dataKey = new DataKey<>(defaultValue);
+        dataKey.getPlaceholders().add(placeholder);
+        dataKey.register(p -> true, valueSupplier);
+    }
+
     private static void registerPlaceholders() {
-        TabAPI.getInstance().getPlaceholderManager().registerPlayerPlaceholder(
-                "%pvelevel_level%",
-                50 * 20, // milliseconds
+        registerPlayerPlaceholder(
+                "0",
+                "pvelevel_level",
                 p -> FORMATTER_COMMAS.format(LevelCalculator.toLevel(DBConnector.getExp(p.getUniqueId())))
         );
-        TabAPI.getInstance().getPlaceholderManager().registerPlayerPlaceholder(
-                "%pvelevel_exp%",
-                50 * 20, // milliseconds
+        registerPlayerPlaceholder(
+                "0",
+                "pvelevel_exp",
                 p -> FORMATTER_COMMAS.format(LevelCalculator.toLevel(DBConnector.getExp(p.getUniqueId())))
         );
-        TabAPI.getInstance().getPlaceholderManager().registerPlayerPlaceholder(
-                "%pvelevel_exp_for_next_level%",
-                50 * 20, // milliseconds
+        registerPlayerPlaceholder(
+                "0",
+                "pvelevel_exp_for_next_level",
                 p -> {
                     long exp = DBConnector.getExp(p.getUniqueId());
                     return FORMATTER_COMMAS.format(LevelCalculator.toExp(LevelCalculator.toLevel(exp) + 1) - exp);
