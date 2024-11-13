@@ -3,7 +3,6 @@ version: @version@
 main: net.azisaba.lifepvelevel.SpigotPlugin
 api-version: 1.15
 depend:
-  - TAB
   - TAB-BukkitBridge
   - LoreEditor
   - ItemStash
@@ -42,7 +41,7 @@ permissions:
     default: true
   lifepvelevel.command.givepvelevelboostitem:
     description: Allows the player to use /givepvelevelboostitem
-    default: op
+    default: false
   lifepvelevel.bypass_level:
     description: Allows the player to bypass the level requirement
     default: false

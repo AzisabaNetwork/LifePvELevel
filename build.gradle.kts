@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "net.azisaba"
-version = "1.3.0a+1.21.1"
+version = "2.0.2+1.21.1"
 
 repositories {
     mavenCentral()
@@ -32,6 +32,7 @@ dependencies {
     compileOnly("com.github.Staartvin:Statz:v1.5.5") {
         exclude("nl.lolmewn.stats", "Stats")
         exclude("me.staartvin", "PluginLibrary")
+        exclude("org.bukkit", "bukkit")
     }
     compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.1.196") {
         exclude("com.sk89q.worldguard", "worldguard-core")

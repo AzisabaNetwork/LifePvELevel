@@ -196,7 +196,7 @@ public class DBConnector {
     }
 
     public static long getRequiredLevel(@NotNull String mmid) {
-        return REQUIRED_LEVELS.getOrDefault(mmid, 0L);
+        return REQUIRED_LEVELS.getOrDefault(mmid, SpigotPlugin.getInstance().getConfig().getLong("default-required-level", 0L));
     }
 
     public static void addExp(@NotNull UUID uuid, long exp) {
