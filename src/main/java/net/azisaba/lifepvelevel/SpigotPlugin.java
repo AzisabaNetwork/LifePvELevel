@@ -152,7 +152,7 @@ public final class SpigotPlugin extends JavaPlugin {
         registerPlayerPlaceholder(
                 "0",
                 "pvelevel_exp",
-                p -> FORMATTER_COMMAS.format(LevelCalculator.toLevel(DBConnector.getExp(p.getUniqueId())))
+                p -> FORMATTER_COMMAS.format(DBConnector.getExp(p.getUniqueId()))
         );
         registerPlayerPlaceholder(
                 "0",
