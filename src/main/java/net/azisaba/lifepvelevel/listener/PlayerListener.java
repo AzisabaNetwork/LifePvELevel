@@ -80,15 +80,19 @@ public class PlayerListener implements Listener {
             }
             if (helmet != null) {
                 ItemStash.getInstance().addItemToStash(player.getUniqueId(), helmet);
+                player.getInventory().setHelmet(null);
             }
             if (chestPlate != null) {
                 ItemStash.getInstance().addItemToStash(player.getUniqueId(), chestPlate);
+                player.getInventory().setChestplate(null);
             }
             if (leggings != null) {
                 ItemStash.getInstance().addItemToStash(player.getUniqueId(), leggings);
+                player.getInventory().setLeggings(null);
             }
             if (boots != null) {
                 ItemStash.getInstance().addItemToStash(player.getUniqueId(), boots);
+                player.getInventory().setBoots(null);
             }
             player.updateInventory();
             if (helmet != null || chestPlate != null || leggings != null || boots != null) {
