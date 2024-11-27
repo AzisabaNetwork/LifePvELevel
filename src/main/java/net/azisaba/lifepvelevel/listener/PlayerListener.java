@@ -1,5 +1,6 @@
 package net.azisaba.lifepvelevel.listener;
 
+import net.azisaba.itemstash.ItemStash;
 import net.azisaba.lifepvelevel.SpigotPlugin;
 import net.azisaba.lifepvelevel.messages.Messages;
 import net.azisaba.lifepvelevel.sql.DBConnector;
@@ -77,10 +78,18 @@ public class PlayerListener implements Listener {
                 player.getInventory().addItem(boots);
                 boots = null;
             }
-            player.getInventory().setHelmet(boots);
-            player.getInventory().setChestplate(leggings);
-            player.getInventory().setLeggings(chestPlate);
-            player.getInventory().setBoots(helmet);
+            if (helmet != null) {
+                ItemStash.getInstance().addItemToStash(player.getUniqueId(), helmet);
+            }
+            if (chestPlate != null) {
+                ItemStash.getInstance().addItemToStash(player.getUniqueId(), chestPlate);
+            }
+            if (leggings != null) {
+                ItemStash.getInstance().addItemToStash(player.getUniqueId(), leggings);
+            }
+            if (boots != null) {
+                ItemStash.getInstance().addItemToStash(player.getUniqueId(), boots);
+            }
             player.updateInventory();
             if (helmet != null || chestPlate != null || leggings != null || boots != null) {
                 player.sendMessage("" + ChatColor.GOLD + ChatColor.STRIKETHROUGH + "========================================");
