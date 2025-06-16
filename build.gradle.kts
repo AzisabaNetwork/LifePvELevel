@@ -5,12 +5,12 @@ plugins {
 }
 
 group = "net.azisaba"
-version = "2.0.4+1.15.2"
+version = "2.0.5+1.15.2"
 
 repositories {
     mavenCentral()
     maven { url = uri("https://oss.sonatype.org/content/groups/public/") }
-    //maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
+    maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
     maven { url = uri("https://jitpack.io/") } // Statz
     maven { url = uri("https://mvn.lumine.io/repository/maven-public/") } // for MythicMobs
     maven { url = uri("https://nexus.neetgames.com/repository/maven-public/") } // for mcMMO
@@ -73,6 +73,10 @@ tasks {
     }
 
     compileJava {
+        options.encoding = "UTF-8"
+    }
+
+    javadoc {
         options.encoding = "UTF-8"
     }
 
