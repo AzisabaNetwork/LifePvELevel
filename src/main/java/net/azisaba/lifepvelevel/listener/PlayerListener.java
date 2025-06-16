@@ -52,14 +52,11 @@ public class PlayerListener implements Listener {
 
     public static void checkIllegalArmor(@NotNull Player player) {
         if (!player.isOnline()) return;
-
-        player.sendMessage(ChatColor.AQUA + "[Debug] PvE防具レベルチェックを実行します...");
         boolean wasIllegalItemFound = false;
 
         ItemStack helmet = player.getInventory().getHelmet();
         if (helmet != null && helmet.getType() != org.bukkit.Material.AIR) {
             if (!Util.canUseItem(player, helmet)) {
-                player.sendMessage(ChatColor.YELLOW + "[Debug] ヘルメットのレベルが不足しています。");
                 wasIllegalItemFound = true;
                 player.getInventory().setHelmet(null);
                 if (!player.getInventory().addItem(helmet).isEmpty()) {
@@ -71,7 +68,6 @@ public class PlayerListener implements Listener {
         ItemStack chestPlate = player.getInventory().getChestplate();
         if (chestPlate != null && chestPlate.getType() != org.bukkit.Material.AIR) {
             if (!Util.canUseItem(player, chestPlate)) {
-                player.sendMessage(ChatColor.YELLOW + "[Debug] チェストプレートのレベルが不足しています。");
                 wasIllegalItemFound = true;
                 player.getInventory().setChestplate(null);
                 if (!player.getInventory().addItem(chestPlate).isEmpty()) {
@@ -83,7 +79,6 @@ public class PlayerListener implements Listener {
         ItemStack leggings = player.getInventory().getLeggings();
         if (leggings != null && leggings.getType() != org.bukkit.Material.AIR) {
             if (!Util.canUseItem(player, leggings)) {
-                player.sendMessage(ChatColor.YELLOW + "[Debug] レギンスのレベルが不足しています。");
                 wasIllegalItemFound = true;
                 player.getInventory().setLeggings(null);
                 if (!player.getInventory().addItem(leggings).isEmpty()) {
@@ -95,7 +90,6 @@ public class PlayerListener implements Listener {
         ItemStack boots = player.getInventory().getBoots();
         if (boots != null && boots.getType() != org.bukkit.Material.AIR) {
             if (!Util.canUseItem(player, boots)) {
-                player.sendMessage(ChatColor.YELLOW + "[Debug] ブーツのレベルが不足しています。");
                 wasIllegalItemFound = true;
                 player.getInventory().setBoots(null);
                 if (!player.getInventory().addItem(boots).isEmpty()) {
@@ -107,7 +101,6 @@ public class PlayerListener implements Listener {
         ItemStack offHandItem = player.getInventory().getItemInOffHand();
         if (offHandItem != null && offHandItem.getType() != org.bukkit.Material.AIR) {
             if (!Util.canUseItem(player, offHandItem)) {
-                player.sendMessage(ChatColor.YELLOW + "[Debug] オフハンドアイテムのレベルが不足しています。");
                 wasIllegalItemFound = true;
                 player.getInventory().setItemInOffHand(null);
                 if (!player.getInventory().addItem(offHandItem).isEmpty()) {
@@ -123,9 +116,7 @@ public class PlayerListener implements Listener {
             Messages.sendFormatted(player, "item.illegal_armor");
             player.sendMessage("");
             player.sendMessage("" + ChatColor.GOLD + ChatColor.STRIKETHROUGH + "========================================");
-            player.sendMessage(ChatColor.GREEN + "[Debug] アイテムの移動処理が完了しました。");
         } else {
-            player.sendMessage(ChatColor.GREEN + "[Debug] 装備中の防具は全てレベル要件を満たしています。");
         }
     }
 
