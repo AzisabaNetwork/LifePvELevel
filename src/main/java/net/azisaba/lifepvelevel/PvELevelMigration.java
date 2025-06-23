@@ -37,14 +37,7 @@ public class PvELevelMigration {
     }
 
     public static void migratePlayer(@NotNull String username) {
-        migratePlayer(mcMMO.getDatabaseManager().loadPlayerProfile(username));
-    }
-
-    public static void migratePlayer(@NotNull UUID uuid) {
-        migratePlayer(mcMMO.getDatabaseManager().loadPlayerProfile(uuid));
-    }
-
-    public static void migratePlayer(@NotNull PlayerProfile profile) {
+        PlayerProfile profile = mcMMO.getDatabaseManager().loadPlayerProfile(username);
         Statz statz = (Statz) Bukkit.getPluginManager().getPlugin("Statz");
         if (statz == null) {
             throw new IllegalStateException("Statz is not installed.");
@@ -56,5 +49,21 @@ public class PvELevelMigration {
             return;
         }
         DBConnector.setExp(profile.getUniqueId(), exp);
+    }
+
+    public static void migratePlayer(@NotNull UUID uuid) {
+        PlayerProfile profile = mcMMO.getDatabaseManager().loadPlayerProfile(uuid);
+        Statz statz = (Statz) Bukkit.getPluginManager().getPlugin("Statz");
+        if (statz == null) {
+            throw new IllegalStateException("Statz is not installed.");
+        }
+        int acrobaticsLevel = profile.getSkillLevel(PrimarySkillType.ACROBATICS);
+        statz.getDataManager().loadPlayerData(uuid, PlayerStat.KILLS_MOBS);
+        long kills = (long) Math.floor(statz.getStatzAPI().getTotalOf(PlayerStat.KILLS_MOBS, uuid, null));
+        long exp = LevelCalculator.toExp(Math.sqrt(kills / 5.0) + (acrobaticsLevel / 75.0));
+        if (DBConnector.getExpUncached(uuid) > exp) {
+            return;
+        }
+        DBConnector.setExp(uuid, exp);
     }
 }
