@@ -74,6 +74,12 @@ public class ResetPvELevelCommand implements TabExecutor {
             return true;
         }
 
+        // Check if the resetpvelevel command is enabled in config
+        if (!SpigotPlugin.getInstance().getConfig().getBoolean("enable-resetpvelevel", false)) {
+            sender.sendMessage(ChatColor.RED + "PvEレベルのリセット機能は現在無効になっています。");
+            return true;
+        }
+
         Player player = (Player) sender;
         UUID playerId = player.getUniqueId();
 

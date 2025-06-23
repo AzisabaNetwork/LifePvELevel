@@ -2,6 +2,7 @@ default-required-level: 0
 always-bypass: false
 always-bypass-if-not-negative: false
 enforced-mythic-type: []
+enable-resetpvelevel: false
 
 database:
   # (scheme)://(host):(port)/(database)
