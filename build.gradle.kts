@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.azisaba"
-version = "2.0.7+1.15.2"
+version = "2.0.8+1.15.2"
 
 repositories {
     mavenCentral()

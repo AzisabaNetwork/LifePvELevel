@@ -41,7 +41,7 @@ permissions:
     default: true
   lifepvelevel.command.givepvelevelboostitem:
     description: Allows the player to use /givepvelevelboostitem
-    default: false
+    default: op
   lifepvelevel.bypass_level:
     description: Allows the player to bypass the level requirement
     default: false
