@@ -26,14 +26,16 @@ jobs:
         id: cache
         with:
           path: ~/.m2
-          key: m2-1.15.2-cache
+          key: m2-1.15.2-1.12.2-cache
           restore-keys: |
-            m2-1.15.2
+            m2-1.15.2-1.12.2-
+            m2-1.15.2-
       - name: Setup BuildTools
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           wget "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
           java -jar BuildTools.jar --rev 1.15.2
+          java -jar BuildTools.jar --rev 1.12.2
   build:
     runs-on: ubuntu-latest
     needs: [setup-spigot]
@@ -51,9 +53,10 @@ jobs:
         id: cache
         with:
           path: ~/.m2
-          key: m2-1.15.2-cache
+          key: m2-1.15.2-1.12.2-cache
           restore-keys: |
-            m2-1.15.2
+            m2-1.15.2-1.12.2-
+            m2-1.15.2-
       - name: Prepare gradle.properties
         run: |
           mkdir -p $HOME/.gradle
