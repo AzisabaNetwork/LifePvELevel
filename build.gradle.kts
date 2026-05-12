@@ -8,6 +8,7 @@ group = "net.azisaba"
 version = "2.0.9+1.15.2"
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven { url = uri("https://oss.sonatype.org/content/groups/public/") }
     maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
@@ -22,7 +23,6 @@ repositories {
             url = uri("https://repo.azisaba.net/repository/nms/")
         }
     }
-    mavenLocal()
 }
 
 dependencies {
