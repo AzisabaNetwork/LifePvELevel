@@ -1,5 +1,7 @@
 package net.azisaba.lifepvelevel;
 
+import net.azisaba.lifepvelevel.api.PvELevelAPI;
+import net.azisaba.lifepvelevel.api.PvELevelAPIImpl;
 import net.azisaba.lifepvelevel.commands.*;
 import net.azisaba.lifepvelevel.listener.MythicMobDeathListener;
 import net.azisaba.lifepvelevel.listener.PlayerListener;
@@ -23,6 +25,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.ServicePriority;
+import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,6 +42,7 @@ import java.util.function.Function;
 public final class SpigotPlugin extends JavaPlugin {
     private static final DecimalFormat FORMATTER_COMMAS = new DecimalFormat("#,###");
     private static SpigotPlugin instance;
+    private final PvELevelAPI pveLevelAPI = new PvELevelAPIImpl();
     private DatabaseConfig databaseConfig;
     private boolean alwaysBypass = false;
     private boolean alwaysBypassIfNotNegative = false;
@@ -102,8 +107,13 @@ public final class SpigotPlugin extends JavaPlugin {
             }
         });
 
+        registerAPI();
         registerPlaceholders();
         TheTAB.enable();
+    }
+
+    private void registerAPI() {
+        Bukkit.getServicesManager().register(PvELevelAPI.class, pveLevelAPI, this, ServicePriority.Normal);
     }
 
     private static @Nullable String getRequiredLevelText(@NotNull Player player, @NotNull ItemStack item) {
@@ -166,6 +176,8 @@ public final class SpigotPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        ServicesManager servicesManager = Bukkit.getServicesManager();
+        servicesManager.unregister(PvELevelAPI.class, pveLevelAPI);
         Bukkit.getOnlinePlayers().forEach(PacketUtil::eject);
         DBConnector.close();
     }
@@ -184,6 +196,11 @@ public final class SpigotPlugin extends JavaPlugin {
         Bukkit.getScheduler().runTaskLater(SpigotPlugin.getInstance(), () -> {
             if (player.isOnline()) player.updateInventory();
         }, 1);
+    }
+
+    @NotNull
+    public PvELevelAPI getPvELevelAPI() {
+        return pveLevelAPI;
     }
 
     public boolean isAlwaysBypass() {
