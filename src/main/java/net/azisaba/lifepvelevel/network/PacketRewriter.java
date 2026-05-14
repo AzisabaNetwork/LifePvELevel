@@ -20,32 +20,40 @@ import java.util.List;
 public class PacketRewriter {
     public static List<Object> processIncomingPacket(@NotNull PacketData packetData) {
         Packet<?> packet = packetData.getPacket();
-        if (packet instanceof ServerboundInteractPacket p) {
-            if (checkItem(packetData, InteractionHand.MAIN_HAND) || checkItem(packetData, InteractionHand.OFF_HAND)) {
-                return Collections.emptyList();
-            }
-        } else if (packet instanceof ServerboundUseItemOnPacket p) {
-            if (checkItem(packetData, InteractionHand.MAIN_HAND) || checkItem(packetData, InteractionHand.OFF_HAND)) {
-                ServerPlayer player = ((CraftPlayer) packetData.getPlayer()).getHandle();
-                Bukkit.getScheduler().runTask(SpigotPlugin.getInstance(), () -> {
-                    player.connection.sendPacket(new ClientboundBlockUpdatePacket(player.level(), p.getHitResult().getBlockPos()));
-                    player.connection.sendPacket(new ClientboundBlockUpdatePacket(player.level(), p.getHitResult().getBlockPos().relative(p.getHitResult().getDirection())));
-                });
-                return Collections.emptyList();
-            }
-        } else if (packet instanceof ServerboundPlayerActionPacket p) {
-            if (p.getAction() == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
+        switch (packet) {
+            case ServerboundInteractPacket p -> {
                 if (checkItem(packetData, InteractionHand.MAIN_HAND) || checkItem(packetData, InteractionHand.OFF_HAND)) {
                     return Collections.emptyList();
                 }
             }
-        } else if (packet instanceof ServerboundUseItemPacket) {
-            if (checkItem(packetData, InteractionHand.MAIN_HAND) || checkItem(packetData, InteractionHand.OFF_HAND)) {
-                return Collections.emptyList();
+            case ServerboundUseItemOnPacket p -> {
+                if (checkItem(packetData, InteractionHand.MAIN_HAND) || checkItem(packetData, InteractionHand.OFF_HAND)) {
+                    ServerPlayer player = ((CraftPlayer) packetData.getPlayer()).getHandle();
+                    Bukkit.getScheduler().runTask(SpigotPlugin.getInstance(), () -> {
+                        player.connection.send(new ClientboundBlockUpdatePacket(player.level(), p.getHitResult().getBlockPos()));
+                        player.connection.send(new ClientboundBlockUpdatePacket(player.level(), p.getHitResult().getBlockPos().relative(p.getHitResult().getDirection())));
+                    });
+                    return Collections.emptyList();
+                }
             }
-        } else if (packet instanceof ServerboundSwingPacket) {
-            if (checkItem(packetData, InteractionHand.MAIN_HAND) || checkItem(packetData, InteractionHand.OFF_HAND)) {
-                return Collections.emptyList();
+            case ServerboundPlayerActionPacket p -> {
+                if (p.getAction() == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
+                    if (checkItem(packetData, InteractionHand.MAIN_HAND) || checkItem(packetData, InteractionHand.OFF_HAND)) {
+                        return Collections.emptyList();
+                    }
+                }
+            }
+            case ServerboundUseItemPacket serverboundUseItemPacket -> {
+                if (checkItem(packetData, InteractionHand.MAIN_HAND) || checkItem(packetData, InteractionHand.OFF_HAND)) {
+                    return Collections.emptyList();
+                }
+            }
+            case ServerboundSwingPacket serverboundSwingPacket -> {
+                if (checkItem(packetData, InteractionHand.MAIN_HAND) || checkItem(packetData, InteractionHand.OFF_HAND)) {
+                    return Collections.emptyList();
+                }
+            }
+            default -> {
             }
         }
         return Collections.singletonList(packet);

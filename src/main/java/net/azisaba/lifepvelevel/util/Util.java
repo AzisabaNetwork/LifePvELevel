@@ -154,12 +154,11 @@ public class Util {
         return CraftItemStack.asBukkitCopy(nms);
     }
 
-    @Contract("null -> null")
-    public static String getMythicType(@Nullable ItemStack item) {
+    public static @Nullable String getMythicType(@Nullable ItemStack item) {
         CompoundTag tag = getCustomDataOrEmpty(item);
-        var publicBukkitValues = tag.getCompound("PublicBukkitValues");
-        if (!publicBukkitValues.contains("mythicmobs:type", 8)) return null;
-        return publicBukkitValues.getString("mythicmobs:type");
+        var publicBukkitValues = tag.getCompound("PublicBukkitValues").orElse(new CompoundTag());
+        if (!publicBukkitValues.contains("mythicmobs:type")) return null;
+        return publicBukkitValues.getString("mythicmobs:type").orElse(null);
     }
 
     @Contract("null -> null")
@@ -168,17 +167,19 @@ public class Util {
         CustomData customData = nms.get(DataComponents.CUSTOM_DATA);
         if (customData == null) return null;
         CompoundTag tag = customData.copyTag();
-        var publicBukkitValues = tag.getCompound("PublicBukkitValues");
-        if (!publicBukkitValues.contains("mythicmobs:type", 8)) return null;
-        return publicBukkitValues.getString("mythicmobs:type");
+        var publicBukkitValues = tag.getCompound("PublicBukkitValues").orElse(new CompoundTag());
+        if (!publicBukkitValues.contains("mythicmobs:type")) return null;
+        return publicBukkitValues.getString("mythicmobs:type").orElse(null);
     }
 
     @Nullable
     private static String getMMIDOrTagInMainHand(@NotNull Player player) {
         CompoundTag tag = getCustomData(player.getInventory().getItemInMainHand());
         if (tag == null) return null;
-        var publicBukkitValues = tag.getCompound("PublicBukkitValues");
-        if (publicBukkitValues.contains("mythicmobs:type", 8)) return publicBukkitValues.getString("mythicmobs:type");
+        var publicBukkitValues = tag.getCompound("PublicBukkitValues").orElse(new CompoundTag());
+        if (publicBukkitValues.contains("mythicmobs:type")) {
+            return publicBukkitValues.getString("mythicmobs:type").orElse(null);
+        }
         return toSortedString(tag);
     }
 
@@ -201,11 +202,12 @@ public class Util {
             return DBConnector.getRequiredLevel(key);
         }
         CompoundTag tag = customData.copyTag();
-        if (!tag.getCompound("PublicBukkitValues").contains("mythicmobs:type", 8)) {
+        CompoundTag pbv = tag.getCompound("PublicBukkitValues").orElse(new CompoundTag());
+        if (!pbv.contains("mythicmobs:type")) {
             String key = ":" + stack.getType().name() + ":" + toSortedString(tag);
             return DBConnector.getRequiredLevel(key);
         }
-        String mmid = tag.getCompound("PublicBukkitValues").getString("mythicmobs:type");
+        String mmid = pbv.getString("mythicmobs:type").orElse(null);
         return DBConnector.getRequiredLevel(mmid);
     }
 

@@ -12,8 +12,7 @@ import org.bukkit.event.Listener;
 public class MythicMobDeathListener implements Listener {
     @EventHandler
     public void giveExp(MythicMobLootDropEvent e) {
-        if (!(e.getKiller() instanceof Player)) return;
-        Player killer = (Player) e.getKiller();
+        if (!(e.getKiller() instanceof Player killer)) return;
         int exp = (int) (e.getExp() * (1 + (DBConnector.getBoostedPercentage() / 100.0)));
         long currentExp = DBConnector.getExp(killer.getUniqueId());
         long oldLevel = LevelCalculator.toLevel(currentExp);

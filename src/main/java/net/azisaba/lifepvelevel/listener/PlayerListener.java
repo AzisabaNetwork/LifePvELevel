@@ -229,10 +229,9 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onBlockDispenseArmor(BlockDispenseArmorEvent e) {
-        if (!(e.getTargetEntity() instanceof Player)) {
+        if (!(e.getTargetEntity() instanceof Player player)) {
             return;
         }
-        Player player = (Player) e.getTargetEntity();
         if (!Util.canUseItem(player, e.getItem())) {
             e.setCancelled(true);
         }

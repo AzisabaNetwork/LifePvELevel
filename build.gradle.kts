@@ -1,18 +1,17 @@
 plugins {
-    id("io.papermc.paperweight.userdev") version "1.7.1"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
     java
     id("com.gradleup.shadow") version "8.3.3"
     `maven-publish`
 }
 
 group = "net.azisaba"
-version = "2.0.2+1.21.1"
+version = "2.0.2+1.21.11-SNAPSHOT"
 
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/") // Paper
     maven { url = uri("https://oss.sonatype.org/content/groups/public/") }
-    //maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
     maven { url = uri("https://jitpack.io/") } // Statz
     maven { url = uri("https://mvn.lumine.io/repository/maven-public/") } // for MythicMobs
     maven { url = uri("https://nexus.neetgames.com/repository/maven-public/") } // for mcMMO
@@ -23,8 +22,10 @@ dependencies {
     implementation("com.zaxxer:HikariCP:6.0.0")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.0")
     compileOnly("org.jetbrains:annotations:23.0.0")
-    compileOnly("io.lumine:Mythic-Dist:5.7.2")
-    compileOnly("net.azisaba.loreeditor:api:1.0.0-SNAPSHOT:all")
+    compileOnly("io.lumine:Mythic-Dist:5.12.0")
+    compileOnly("net.azisaba.loreeditor:api:1.0.0-SNAPSHOT:all") {
+        exclude("org.spigotmc", "spigot-api")
+    }
     compileOnly("net.azisaba:ItemStash:1.0.0-SNAPSHOT")
     compileOnly("net.azisaba:TAB-BukkitBridge:2.0.2")
 
@@ -34,13 +35,12 @@ dependencies {
         exclude("me.staartvin", "PluginLibrary")
         exclude("org.bukkit", "bukkit")
     }
-    compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.1.196") {
+    compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.2.051") {
         exclude("com.sk89q.worldguard", "worldguard-core")
         exclude("com.sk89q.worldguard", "worldguard-legacy")
     }
 
-    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
-    paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
 }
 
 java {

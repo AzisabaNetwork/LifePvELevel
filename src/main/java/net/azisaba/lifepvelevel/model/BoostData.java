@@ -8,12 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public class BoostData {
-    private final UUID uuid;
-    private final long percentage;
-    private final long start;
-    private final long end;
-
+public record BoostData(UUID uuid, long percentage, long start, long end) {
     public BoostData(@NotNull UUID uuid, long percentage, long start, long end) {
         this.uuid = uuid;
         this.percentage = percentage;
@@ -21,20 +16,9 @@ public class BoostData {
         this.end = end;
     }
 
+    @Override
     public @NotNull UUID uuid() {
         return uuid;
-    }
-
-    public long percentage() {
-        return percentage;
-    }
-
-    public long start() {
-        return start;
-    }
-
-    public long end() {
-        return end;
     }
 
     public @NotNull Optional<String> getName() {
@@ -45,14 +29,8 @@ public class BoostData {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof BoostData)) return false;
-        BoostData boostData = (BoostData) o;
-        return percentage == boostData.percentage && start == boostData.start && end == boostData.end && Objects.equals(uuid, boostData.uuid);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(uuid, percentage, start, end);
+        if (!(o instanceof BoostData(UUID uuid1, long percentage1, long start1, long end1))) return false;
+        return percentage == percentage1 && start == start1 && end == end1 && Objects.equals(uuid, uuid1);
     }
 
     @Override
